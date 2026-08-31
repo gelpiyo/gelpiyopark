@@ -1,0 +1,18 @@
+{
+  "name": "ゲルぴよ公園大作戦 ～ぴよ達の遊び場争奪戦～",
+  "short_name": "ゲルぴよ公園",
+  "description": "ゲルぴよたちの遊び場づくりと縄張り争いをたのしむ、スマホWebブラウザ向けシミュレーションゲーム。",
+  "lang": "ja",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#9EE3F2",
+  "theme_color": "#7FD4E8",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

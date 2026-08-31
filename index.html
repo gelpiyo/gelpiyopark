@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#7FD4E8" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="description" content="ゲルぴよ公園大作戦 ～ぴよ達の遊び場争奪戦～ / スマホWebブラウザ向け 遊び場開拓・縄張り争いシミュレーション" />
+<title>ゲルぴよ公園大作戦</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/icon.svg" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ============ タイトル ============ -->
+<div id="title-screen" class="title-screen">
+  <div class="title-sky"></div>
+  <div class="title-inner">
+    <div class="title-piyos" id="title-piyos"></div>
+    <h1 class="title-logo">
+      <span class="logo-sub">ゲルぴよ</span>
+      <span class="logo-main">公園大作戦</span>
+      <span class="logo-tag">～ぴよ達の遊び場争奪戦～</span>
+    </h1>
+    <div class="title-buttons">
+      <button id="btn-continue" class="btn btn-primary btn-lg" type="button" hidden>つづきから</button>
+      <button id="btn-newgame" class="btn btn-accent btn-lg" type="button">あたらしく はじめる</button>
+      <button id="btn-howto" class="btn btn-ghost" type="button">あそびかた</button>
+    </div>
+    <p class="title-note">スマホ縦画面むけ／インストール不要</p>
+  </div>
+</div>
+
+<!-- ============ ゲーム本体 ============ -->
+<div id="app" class="app" hidden>
+
+  <header class="hud">
+    <div class="hud-row hud-top">
+      <div class="hud-day"><span class="hud-day-label">DAY</span><strong id="hud-day">1</strong></div>
+      <div class="kigen-wrap" id="kigen-wrap">
+        <div class="kigen-face" id="kigen-face">😊</div>
+        <div class="kigen-bar"><div class="kigen-fill" id="kigen-fill"></div></div>
+        <div class="kigen-val"><span id="kigen-val">50</span></div>
+      </div>
+      <button class="hud-menu" id="btn-menu" type="button" aria-label="メニュー">☰</button>
+    </div>
+    <div class="hud-row hud-res" id="hud-res">
+      <div class="res" data-res="danbo"><span class="res-ico">📦</span><span class="res-num" id="res-danbo">0</span></div>
+      <div class="res" data-res="juice"><span class="res-ico">🥤</span><span class="res-num" id="res-juice">0</span></div>
+      <div class="res" data-res="snack"><span class="res-ico">🍪</span><span class="res-num" id="res-snack">0</span></div>
+      <div class="res" data-res="menko"><span class="res-ico">🎴</span><span class="res-num" id="res-menko">0</span></div>
+      <div class="res res-genki" data-res="genki"><span class="res-ico">⚡</span><span class="res-num" id="res-genki">3</span></div>
+    </div>
+  </header>
+
+  <main class="screens" id="screens">
+
+    <!-- 公園（内政） -->
+    <section class="screen" id="screen-park" data-screen="park">
+      <div class="screen-scroll">
+        <div class="park-head">
+          <div class="park-title">
+            <h2 id="park-name">ちゅうおう広場</h2>
+            <p id="park-sub">なかま 0 / 定員 0</p>
+          </div>
+          <div class="park-income" id="park-income"></div>
+        </div>
+        <div class="park-scene">
+          <canvas id="park-canvas" width="640" height="300"></canvas>
+        </div>
+        <div class="park-stage">
+          <div class="park-grid" id="park-grid"></div>
+        </div>
+        <div class="park-actions">
+          <button class="btn btn-primary btn-block btn-nextday" id="btn-nextday" type="button">
+            <span class="nextday-main">つぎの日へ すすむ</span>
+            <span class="nextday-sub" id="nextday-sub">せいさん回収＋ライバル行動</span>
+          </button>
+        </div>
+        <div class="panel">
+          <h3 class="panel-title">こうえん日記</h3>
+          <ul class="log-list" id="park-log"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 縄張りマップ -->
+    <section class="screen" id="screen-map" data-screen="map" hidden>
+      <div class="screen-scroll">
+        <div class="map-head">
+          <h2>なわばりマップ</h2>
+          <div class="map-shares" id="map-shares"></div>
+        </div>
+        <div class="map-stage">
+          <canvas id="map-canvas" width="640" height="700"></canvas>
+        </div>
+        <div class="panel tile-panel">
+          <div class="tile-empty" id="tile-empty">区画を タップすると くわしく見られます</div>
+          <div class="tile-detail" id="tile-detail" hidden></div>
+        </div>
+        <div class="panel">
+          <h3 class="panel-title">ライバルたちの ごきげん</h3>
+          <div class="faction-list" id="faction-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- なかま -->
+    <section class="screen" id="screen-squad" data-screen="squad" hidden>
+      <div class="screen-scroll">
+        <div class="squad-head">
+          <h2>なかま</h2>
+          <div class="squad-tabs">
+            <button class="seg is-on" data-squadtab="team" type="button">へんせい</button>
+            <button class="seg" data-squadtab="all" type="button">ずかん</button>
+          </div>
+        </div>
+        <div id="squad-team-view">
+          <p class="hint">出撃メンバーは さいだい <b id="team-cap">4</b> ぴよ。タップで えらぶ／はずす。</p>
+          <div class="team-slots" id="team-slots"></div>
+          <div class="panel">
+            <h3 class="panel-title">さくせん</h3>
+            <div class="tactic-row" id="tactic-row"></div>
+            <p class="hint" id="tactic-desc"></p>
+          </div>
+        </div>
+        <div id="squad-all-view" hidden>
+          <div class="roster-count" id="roster-count"></div>
+          <div class="filter-row" id="squad-filter"></div>
+          <div class="piyo-list" id="piyo-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- スカウト -->
+    <section class="screen" id="screen-gacha" data-screen="gacha" hidden>
+      <div class="screen-scroll">
+        <div class="gacha-head">
+          <h2>ぴよスカウト</h2>
+          <p class="hint">こうえんの すみっこで あたらしい なかまを さがそう！</p>
+        </div>
+        <div class="gacha-stage" id="gacha-stage"></div>
+        <div class="gacha-buttons">
+          <button class="btn btn-ghost btn-block" id="btn-scout-free" type="button">
+            <span>おさんぽ スカウト</span><small id="free-sub">1日1回 むりょう</small>
+          </button>
+          <button class="btn btn-accent btn-block" id="btn-scout1" type="button">
+            <span>1かい スカウト</span><small>🎴 5</small>
+          </button>
+          <button class="btn btn-primary btn-block" id="btn-scout10" type="button">
+            <span>10れん スカウト</span><small>🎴 45／R以上 1体かくてい</small>
+          </button>
+        </div>
+        <div class="panel">
+          <h3 class="panel-title">はいしゅつ りつ</h3>
+          <ul class="rate-list">
+            <li><b class="rar-sr">SR</b><span>4%</span>とくぎ もち・ステータス大</li>
+            <li><b class="rar-r">R</b><span>26%</span>バランスが いい</li>
+            <li><b class="rar-n">N</b><span>70%</span>かずが たより</li>
+          </ul>
+          <p class="hint">おなじ ぴよが かぶったら「なかよしのかけら 🧩」に なります（育成に つかえる）</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab is-on" data-tab="park" type="button"><span class="tab-ico">🏞</span><span class="tab-txt">こうえん</span></button>
+    <button class="tab" data-tab="map" type="button"><span class="tab-ico">🗺</span><span class="tab-txt">なわばり</span></button>
+    <button class="tab" data-tab="squad" type="button"><span class="tab-ico">🐣</span><span class="tab-txt">なかま</span><span class="tab-badge" id="badge-squad" hidden></span></button>
+    <button class="tab" data-tab="gacha" type="button"><span class="tab-ico">🎁</span><span class="tab-txt">スカウト</span><span class="tab-badge" id="badge-gacha" hidden></span></button>
+  </nav>
+</div>
+
+<!-- ============ バトル ============ -->
+<div id="battle-screen" class="battle-screen" hidden>
+  <div class="battle-top">
+    <div class="battle-side">
+      <span class="battle-side-name" id="battle-name-p">ぴよ団</span>
+      <div class="hpbar"><div class="hpbar-fill hp-p" id="battle-hp-p"></div></div>
+    </div>
+    <div class="battle-vs">VS</div>
+    <div class="battle-side battle-side-e">
+      <span class="battle-side-name" id="battle-name-e">カラス組</span>
+      <div class="hpbar"><div class="hpbar-fill hp-e" id="battle-hp-e"></div></div>
+    </div>
+  </div>
+  <div class="battle-stage">
+    <canvas id="battle-canvas" width="640" height="620"></canvas>
+    <div class="battle-banner" id="battle-banner" hidden></div>
+  </div>
+  <div class="battle-log" id="battle-log"></div>
+  <div class="battle-controls">
+    <button class="btn btn-ghost" id="btn-battle-speed" type="button">×1</button>
+    <button class="btn btn-primary" id="btn-battle-skip" type="button">けっかまで スキップ</button>
+  </div>
+</div>
+
+<!-- ============ 共通モーダル ============ -->
+<div id="modal-root" class="modal-root" hidden>
+  <div class="modal-backdrop" id="modal-backdrop"></div>
+  <div class="modal-card" id="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <h3 id="modal-title">タイトル</h3>
+      <button class="modal-close" id="modal-close" type="button" aria-label="とじる">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/piyo.js"></script>
+<script src="js/hex.js"></script>
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/parkscene.js"></script>
+<script src="js/park.js"></script>
+<script src="js/squad.js"></script>
+<script src="js/gacha.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/worldmap.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
