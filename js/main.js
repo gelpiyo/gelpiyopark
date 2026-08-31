@@ -19,9 +19,18 @@ window.GP = window.GP || {};
     box.innerHTML = '';
     [
       { hue: 2, sat: 76, lit: 54, acc: ['crown'], mood: 'happy' },
-      { hue: 205, sat: 78, lit: 56, acc: [], mood: 'happy' },
+      { hue: 47, sat: 90, lit: 60, acc: [], mood: 'happy' },
       { hue: 130, sat: 55, lit: 52, acc: ['gun'], mood: 'happy' },
-    ].forEach((o) => {
+    ].forEach((o, i) => {
+      if (i === 1) {
+        // まんなかは 実機3Dモデル（まわる）。だめなら SVG に フォールバック
+        const v3 = GP.piyo.view3d(o, { size: 108, drag: false });
+        if (v3) {
+          v3.style.animation = 'hop 1.6s ease-in-out .25s infinite';
+          box.appendChild(v3);
+          return;
+        }
+      }
       const d = el('div', { html: GP.piyo.svg(o) });
       box.appendChild(d.firstElementChild);
     });

@@ -349,6 +349,8 @@ ul{margin:0;padding:0;list-style:none}
 
 .detail-piyo{display:flex;gap:12px;align-items:center;margin-bottom:10px}
 .detail-piyo .piyo{width:88px;flex:0 0 auto}
+.detail-3d{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px}
+.detail-3d small{font-size:9px;font-weight:800;color:var(--ink-soft)}
 .detail-meta{flex:1;min-width:0}
 .detail-meta h4{margin:0 0 3px;font-size:16px;font-weight:900}
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin:8px 0}
@@ -375,7 +377,7 @@ ul{margin:0;padding:0;list-style:none}
 .gacha-bush{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
   width:190px;height:74px;border-radius:90px 90px 8px 8px;
   background:radial-gradient(circle at 30% 30%,#8FCF74,#5FA84C);box-shadow:inset 0 -8px 0 rgba(0,0,0,.08)}
-.gacha-piyo{position:relative;z-index:2;width:112px;flex:0 0 auto;animation:hop 1.5s ease-in-out infinite}
+.gacha-piyo{position:relative;z-index:2;width:118px;flex:0 0 auto;animation:hop 1.5s ease-in-out infinite}
 .gacha-stage.is-rolling .gacha-bush{animation:shake .28s ease-in-out infinite}
 @keyframes shake{0%,100%{transform:translateX(-50%) rotate(0)}
   25%{transform:translateX(-53%) rotate(-3deg)}75%{transform:translateX(-47%) rotate(3deg)}}
@@ -420,7 +422,7 @@ button.result-cell:active{transform:scale(.95)}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hpbar{height:11px;background:rgba(255,255,255,.16);border-radius:999px;overflow:hidden}
 .hpbar-fill{height:100%;width:100%;border-radius:999px;transition:width .3s ease}
-.hp-p{background:linear-gradient(90deg,#7FD4E8,#4EA8DE)}
+.hp-p{background:linear-gradient(90deg,#FFE082,#FFC93C)}
 .hp-e{background:linear-gradient(90deg,#F58A7A,#E4614F);margin-left:auto}
 .battle-vs{font-size:13px;font-weight:900;color:#FFD166;flex:0 0 auto}
 .battle-stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;
@@ -490,6 +492,9 @@ button.result-cell:active{transform:scale(.95)}
   to{transform:translateY(0) scale(1);opacity:1}}
 .toast.out{animation:toastout .3s ease forwards}
 @keyframes toastout{to{transform:translateY(-8px);opacity:0}}
+
+/* ---------- ぴよ 3D（実機モデル） ---------- */
+canvas.piyo3d{display:block;margin:0 auto}
 
 /* ---------- ぴよ SVG ---------- */
 .piyo{display:block;width:100%;height:auto;overflow:visible}

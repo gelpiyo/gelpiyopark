@@ -402,7 +402,7 @@ window.GP = window.GP || {};
     // じんちの めじるし
     ctx.save();
     ctx.globalAlpha = 0.22;
-    ctx.fillStyle = '#4EA8DE';
+    ctx.fillStyle = '#FFC93C';
     for (let c = 0; c < COLS; c++) {
       const p = cellCenter(c, ROWS - 1); H.path(ctx, p.x, p.y, HEX - 2); ctx.fill();
       const p2 = cellCenter(c, ROWS - 2); H.path(ctx, p2.x, p2.y, HEX - 2); ctx.fill();
@@ -435,7 +435,7 @@ window.GP = window.GP || {};
       ctx.globalAlpha = alpha * 0.9;
       ctx.fillStyle = 'rgba(0,0,0,.55)';
       roundRect(ctx, bx - 1, by - 1, w + 2, h + 2, 3); ctx.fill();
-      ctx.fillStyle = u.side === 'p' ? '#63C6E0' : '#F0844A';
+      ctx.fillStyle = u.side === 'p' ? '#FFD24A' : '#F26D5B';
       roundRect(ctx, bx, by, w * U.clamp(u.hp / u.maxHp, 0, 1), h, 2.5); ctx.fill();
       // やくわり バッジ
       const role = D.ROLES[u.role];

@@ -125,6 +125,19 @@ await step('とじる', `(()=>{GP.ui.closeModal(); return 'closed';})()`);
 await step('なかまタブ', `(()=>{document.querySelector('[data-tab="squad"]').click(); return GP.ui.current;})()`);
 await step('ぴよ しょうさい', `(()=>{const b=[...document.querySelectorAll('.slot:not(.is-empty)')][0];
   if(!b) return 'なし'; b.click(); return document.getElementById('modal-title').textContent;})()`);
+await step('実機3Dモデル 表示（装備つき）', `(()=>{
+  const st=GP.state.st;
+  // 種族もちもの持ち（みずぴよ=水鉄砲）に 麦わらを 装備 → 両方 見えること
+  let u=st.units.find(x=>x.sp==='mizupiyo') || GP.state.teamUnits()[0];
+  st.equips.straw = Math.max(1, st.equips.straw||0);
+  u.equip='straw';
+  const acc=GP.piyo.looksOf(u).acc;
+  const both = acc.indexOf('straw')>=0 && (u.sp!=='mizupiyo' || acc.indexOf('gun')>=0);
+  GP.ui.closeModal(); GP.squad.openDetail(u);
+  const c=document.querySelector('.detail-piyo canvas.piyo3d');
+  const svg=document.querySelector('.detail-piyo svg.piyo');
+  const view = c ? '3D' : svg ? 'SVGフォールバック' : 'NG 表示なし';
+  return (both?'OK ':'NG ')+view+' acc=['+acc.join(',')+']';})()`, 600);
 await step('いくせい（かけら）', `(()=>{const b=[...document.querySelectorAll('#modal-body .equip-chip:not([disabled])')]
   .find(x=>/けいけんち/.test(x.textContent)); if(!b) return 'かえず'; b.click(); return 'trained';})()`, 900);
 await step('とじる', `(()=>{GP.ui.closeModal(); return 'closed';})()`);

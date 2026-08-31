@@ -21,10 +21,17 @@ window.GP = window.GP || {};
     const stage = $('#gacha-stage');
     stage.innerHTML = '';
     stage.appendChild(el('div', { class: 'gacha-bush' }));
-    const peek = st.units.length
-      ? GP.piyo.svg(GP.piyo.looksOf(st.units[st.units.length - 1], 'happy'))
-      : GP.piyo.svg({ hue: 48, sat: 88, lit: 60, mood: 'happy' });
-    stage.appendChild(el('div', { class: 'gacha-piyo', html: peek }));
+    const looks = st.units.length
+      ? GP.piyo.looksOf(st.units[st.units.length - 1], 'happy')
+      : { hue: 48, sat: 88, lit: 60, mood: 'happy' };
+    const v3 = GP.piyo.view3d(looks, { size: 118 });
+    if (v3) {
+      const holder = el('div', { class: 'gacha-piyo' });
+      holder.appendChild(v3);
+      stage.appendChild(holder);
+    } else {
+      stage.appendChild(el('div', { class: 'gacha-piyo', html: GP.piyo.svg(looks) }));
+    }
 
     const free = st.freeScoutDay !== st.day;
     const btnFree = $('#btn-scout-free');

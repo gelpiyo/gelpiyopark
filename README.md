@@ -59,11 +59,12 @@ gelpiyopark/
 ├── manifest.webmanifest    PWA（ホーム画面に追加）
 ├── sw.js                   Service Worker（オフライン動作）
 ├── css/style.css           スタイル（縦画面ベース）
-├── assets/                 PWAアイコン（SVG／自動生成）
+├── assets/                 PWAアイコン（SVG／tools/icons.mjs で自動生成）
 ├── js/
 │   ├── util.js             共通ユーティリティ・保存・乱数
 │   ├── data.js             ★マスタデータ（施設/ぴよ/装備/勢力/地形/区画/定数）
-│   ├── piyo.js             ゲルぴよ描画（SVG生成 & Canvas描画）
+│   ├── piyodata.js         実機3Dモデル（tools/mesh.mjs で自動生成・50KB）
+│   ├── piyo.js             ゲルぴよ描画（SVG/Canvas 2D ＋ 実機3Dビュー WebGL）
 │   ├── hex.js              ヘックス座標計算
 │   ├── state.js            ゲーム状態・経済・AI・日送り（DOM非依存）
 │   ├── ui.js               HUD・タブ・モーダル・トースト
@@ -78,6 +79,9 @@ gelpiyopark/
 ├── docs/仕様書.md          実装仕様と案件定義書との対応表
 └── tools/
     ├── build.mjs           1ファイル版のビルド
+    ├── mesh.mjs            実機GLTFモデル → piyodata.js 変換（軽量化・量子化）
+    ├── outline.mjs         3Dモデル正面図 → 2D描画用シルエット抽出
+    ├── icons.mjs           PWAアイコン生成（いまの ぴよ・プレイヤーカラーに追従）
     ├── sim.mjs             ロジックの自動テスト＆バランス確認
     ├── e2e.mjs             ブラウザ操作の通しテスト（CDP）
     └── shot.mjs            画面のスクリーンショット取得（CDP）
@@ -127,7 +131,16 @@ node tools/build.mjs
 
 - **画像アセットを一切使っていません。** ゲルぴよはすべて `js/piyo.js` の
   SVG／Canvas 描画で、色相・装備・表情の組み合わせでバリエーションを作っています。
-  そのため全体で約 200KB、初回ロードは実質待ち時間ゼロです（要件「ロード時間3秒以内」）。
+  全体で約 290KB、初回ロードは実質待ち時間ゼロです（要件「ロード時間3秒以内」）。
+- **2Dの ゲルぴよも 実機モデル準拠。** `tools/outline.mjs` が 3Dモデルの正面投影から
+  シルエット輪郭・目・くちばしの位置を抽出して `js/piyo.js` の SHAPE に埋め込み、
+  SVG／Canvas の描画アルゴリズムはこのデータから形を起こします（表情・装備・色相はそのまま）。
+  モデルが更新されたら `node tools/mesh.mjs` → `node tools/outline.mjs` の順で追従できます。
+- **実機の3Dモデル（SolidWorks製 GLTF）を搭載。** `tools/mesh.mjs` が
+  26,500頂点 → 2,136頂点（50KB）に軽量化して埋め込み、`js/piyo.js` の
+  自前WebGLレンダラ（ライブラリなし・約200行）がタイトル・ぴよ詳細・スカウト画面で
+  表示します。からだの色は2Dと同じ色相システムで着色。WebGL が使えない環境では
+  自動的に SVG 版へフォールバックします。
 - **ライブラリ・ビルド工程ゼロ。** 素の JavaScript（classic script）なので、
   `file://` で直接開いても動きます。
 - **バトルは「先に決着まで計算 → イベントを再生」** の2段構え（`battle.js`）。
