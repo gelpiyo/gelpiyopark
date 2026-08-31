@@ -229,8 +229,8 @@ window.GP = window.GP || {};
      勢力
      --------------------------------------------------------- */
   const FACTIONS = {
-    player: { id: 'player', name: 'ぴよ団',       short: 'ぴよ',  color: '#4EA8DE', dark: '#2E7FB8',
-              kind: 'piyo', hue: 205, sat: 78, lit: 56 },
+    player: { id: 'player', name: 'ぴよ団',       short: 'ぴよ',  color: '#FFC93C', dark: '#D9A00F',
+              kind: 'piyo', hue: 47, sat: 90, lit: 60 },
     crow:   { id: 'crow',   name: 'カラス組',     short: 'カラス', color: '#6D5BA8', dark: '#4A3C78',
               kind: 'crow', hue: 262, sat: 20, lit: 28, aggr: 0.85, power: 1.10,
               taunt: ['カァー！ ここは おれたちの なわばりだ！', 'おやつを おいてけ〜！'] },
@@ -282,9 +282,9 @@ window.GP = window.GP || {};
     { id: 't13', q: -2, r:  2, name: 'ねこじゃらし小道',   ter: 'kodachi', owner: 'cat',    def: 5 },
     { id: 't14', q: -2, r:  1, name: 'かくれんぼ横丁',     ter: 'kodachi', owner: 'none',   def: 3 },
     { id: 't15', q: -2, r:  0, name: 'だがしや通り',       ter: 'hiroba',  owner: 'none',   def: 3 },
-    { id: 't16', q: -1, r: -1, name: 'まつぼっくりの森',   ter: 'kodachi', owner: 'none',   def: 3 },
+    { id: 't16', q:  1, r: -2, name: 'まつぼっくりの森',   ter: 'kodachi', owner: 'none',   def: 3 },
     { id: 't17', q:  0, r: -2, name: 'ゆうひ台',           ter: 'oka',     owner: 'red',    def: 5 },
-    { id: 't18', q:  1, r: -2, name: 'あかぴよ ひみつ基地', ter: 'sunaba', owner: 'red',    def: 6 },
+    { id: 't18', q: -1, r: -1, name: 'あかぴよ ひみつ基地', ter: 'sunaba', owner: 'red',    def: 6 },
   ];
 
   /* ---------------------------------------------------------

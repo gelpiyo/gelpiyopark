@@ -15,7 +15,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 
 const JS = [
-  'js/util.js', 'js/data.js', 'js/piyo.js', 'js/hex.js', 'js/state.js',
+  'js/util.js', 'js/data.js', 'js/piyodata.js', 'js/piyo.js', 'js/hex.js', 'js/state.js',
   'js/ui.js', 'js/parkscene.js', 'js/park.js', 'js/squad.js', 'js/gacha.js',
   'js/battle.js', 'js/worldmap.js', 'js/main.js',
 ];

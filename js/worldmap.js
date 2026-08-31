@@ -75,7 +75,7 @@ window.GP = window.GP || {};
         ctx.save();
         ctx.globalAlpha = 0.28 + Math.sin(pulse) * 0.2;
         H.path(ctx, p.x, p.y, HEX - 7);
-        ctx.lineWidth = 4; ctx.strokeStyle = '#FFD166'; ctx.stroke();
+        ctx.lineWidth = 4; ctx.strokeStyle = '#FFFFFF'; ctx.stroke();
         ctx.restore();
       }
       // せんたく中
@@ -135,6 +135,14 @@ window.GP = window.GP || {};
     ctx.restore();
   }
 
+  /** 明るい 背景色なら 濃い文字、暗ければ 白文字 */
+  function textOn(hex) {
+    const c = hex.replace('#', '');
+    const n = parseInt(c, 16);
+    const lum = 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+    return lum > 165 ? '#5A4420' : '#fff';
+  }
+
   function renderShares() {
     const sh = St.shares();
     const box = $('#map-shares');
@@ -145,7 +153,7 @@ window.GP = window.GP || {};
       const f = D.FACTIONS[k];
       const seg = el('div', {
         class: 'share-seg',
-        style: `width:${(sh[k] / total) * 100}%;background:${f.color}`,
+        style: `width:${(sh[k] / total) * 100}%;background:${f.color};color:${textOn(f.color)}`,
       }, sh[k] >= 2 ? f.short : '');
       box.appendChild(seg);
     });
@@ -193,7 +201,7 @@ window.GP = window.GP || {};
 
     box.appendChild(el('h3', {}, [
       document.createTextNode(t.name),
-      el('span', { class: 'owner-chip', style: 'background:' + f.color, text: f.name }),
+      el('span', { class: 'owner-chip', style: `background:${f.color};color:${textOn(f.color)}`, text: f.name }),
     ]));
     box.appendChild(el('p', { class: 'hint', style: 'margin-top:4px', text: ter.ico + ' ' + ter.name + '：' + ter.note }));
 

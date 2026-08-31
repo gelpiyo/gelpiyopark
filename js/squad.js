@@ -175,7 +175,15 @@ window.GP = window.GP || {};
       const body = el('div');
 
       const head = el('div', { class: 'detail-piyo' });
-      head.appendChild(UI.piyoEl(u, 'happy'));
+      const v3 = GP.piyo.view3d(GP.piyo.looksOf(u, 'happy'), { size: 104 });
+      if (v3) {
+        const holder = el('span', { class: 'detail-3d' });
+        holder.appendChild(v3);
+        holder.appendChild(el('small', { text: 'ドラッグで まわせるよ' }));
+        head.appendChild(holder);
+      } else {
+        head.appendChild(UI.piyoEl(u, 'happy'));
+      }
       head.appendChild(el('div', { class: 'detail-meta' }, [
         el('h4', { text: St.unitName(u) }),
         el('div', { html: `<span style="color:${rar.color};font-weight:900">${rar.name}</span>　` + UI.roleChip(s.role) }),

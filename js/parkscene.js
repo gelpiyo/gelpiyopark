@@ -166,7 +166,7 @@ window.GP = window.GP || {};
       ctx.beginPath(); ctx.arc(0, 0, 13, Math.PI, 0); ctx.fill();
       ctx.strokeStyle = '#8A7969'; ctx.lineWidth = 2.5;
       ctx.beginPath(); ctx.moveTo(0, -64); ctx.lineTo(0, -80); ctx.stroke();
-      ctx.fillStyle = '#4EA8DE';
+      ctx.fillStyle = '#FFC93C';
       ctx.beginPath(); ctx.moveTo(0, -80); ctx.lineTo(17, -74.5); ctx.lineTo(0, -69);
       ctx.closePath(); ctx.fill();
     },

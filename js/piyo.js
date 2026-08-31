@@ -11,6 +11,42 @@ window.GP = window.GP || {};
   const hsl = (h, s, l, a) =>
     a === undefined ? `hsl(${h} ${s}% ${l}%)` : `hsl(${h} ${s}% ${l}% / ${a})`;
 
+  /* @generated-shape-start（tools/outline.mjs が 3Dモデルから 自動生成） */
+  const SHAPE = {"body":[[55.5,6],[57.5,6],[61,9.5],[62,11.5],[62.5,16],[60,21.5],[65.5,25],[71,30.5],[77.5,43],[82.5,55.5],[86,62],[86.5,62.5],[92,62.5],[93.5,65],[93,70.5],[91.5,74.5],[90,76],[90.5,83],[91,83.5],[90.5,96],[88.5,102.5],[83,111.5],[78,116.5],[72,120.5],[67.5,125],[65.5,125.5],[65,125],[39.5,125.5],[39,125],[32.5,125],[31.5,124.5],[27.5,120.5],[21.5,116.5],[16.5,111.5],[11.5,103.5],[9.5,98],[8.5,92.5],[8.5,83.5],[9,83],[9.5,76],[7,72],[6,68.5],[6.5,63.5],[8,62.5],[12.5,62.5],[15.5,58.5],[22,43],[28.5,30.5],[34,25],[38,23],[40.5,20.5],[40.5,18.5],[39.5,17.5],[29.5,12],[30,9.5],[31.5,8.5],[35,8.5],[47.5,19],[51,19.5],[54.5,17],[56.5,14.5],[57,11]],"eye":{"dx":11.2,"y":43.6,"rx":2.3,"ry":2},"beak":{"cy":47.1,"w":14.5,"h":5.7},"accent":{"cy":47.1,"w":13.1,"h":1.2},"dome":8.5,"bottom":126.5};
+  /* @generated-shape-end */
+
+  /* SHAPE から なめらかな とじた パスを つくる（Catmull-Rom風：中点+2次） */
+  let PIYO_D = null;
+  function piyoBodyD() {
+    if (PIYO_D) return PIYO_D;
+    const pts = SHAPE.body, n = pts.length;
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    let m0 = mid(pts[0], pts[1]);
+    let d = `M${m0[0]} ${m0[1]}`;
+    for (let i = 1; i <= n; i++) {
+      const p = pts[i % n], q2 = pts[(i + 1) % n], m = mid(p, q2);
+      d += ` Q${p[0]} ${p[1]} ${m[0]} ${m[1]}`;
+    }
+    PIYO_D = d + ' Z';
+    return PIYO_D;
+  }
+  function tracePiyoBody(ctx) {
+    const pts = SHAPE.body, n = pts.length;
+    ctx.beginPath();
+    ctx.moveTo((pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2);
+    for (let i = 1; i <= n; i++) {
+      const p = pts[i % n], q2 = pts[(i + 1) % n];
+      ctx.quadraticCurveTo(p[0], p[1], (p[0] + q2[0]) / 2, (p[1] + q2[1]) / 2);
+    }
+    ctx.closePath();
+  }
+  // かおの きじゅん値（3Dモデルの 実測 ＋ よみやすさの ため すこし 拡大）
+  const FACE = {
+    exL: 50 - SHAPE.eye.dx, exR: 50 + SHAPE.eye.dx, ey: SHAPE.eye.y,
+    erx: SHAPE.eye.rx * 1.3, ery: SHAPE.eye.ry * 1.35,
+    by: SHAPE.beak.cy, bw: SHAPE.beak.w * 0.58,
+  };
+
   let idSeq = 0;
   const cache = new Map();
 
@@ -26,34 +62,57 @@ window.GP = window.GP || {};
   /* =========================================================
      ひょうじょう（目・くち）
      ========================================================= */
-  function eyes(mood, ink) {
-    const L = 36, R = 64, Y = 63;
+  function eyesAt(mood, ink, L, R, Y, rx, ry) {
+    const w = rx * 1.05, hh = ry * 1.31;
     if (mood === 'happy') {
-      return `<g fill="none" stroke="${ink}" stroke-width="4.6" stroke-linecap="round">
-        <path d="M${L - 6} ${Y + 2} q6 -8 12 0"/><path d="M${R - 6} ${Y + 2} q6 -8 12 0"/></g>`;
+      return `<g fill="none" stroke="${ink}" stroke-width="${(rx * 0.81).toFixed(1)}" stroke-linecap="round">
+        <path d="M${L - w} ${Y + ry * 0.33} q${w} ${-hh} ${w * 2} 0"/>
+        <path d="M${R - w} ${Y + ry * 0.33} q${w} ${-hh} ${w * 2} 0"/></g>`;
     }
     if (mood === 'ko') {
-      return `<g stroke="${ink}" stroke-width="4" stroke-linecap="round">
-        <path d="M${L - 5} ${Y - 5} l10 10 M${L + 5} ${Y - 5} l-10 10"/>
-        <path d="M${R - 5} ${Y - 5} l10 10 M${R + 5} ${Y - 5} l-10 10"/></g>`;
+      const a = rx * 0.88;
+      return `<g stroke="${ink}" stroke-width="${(rx * 0.7).toFixed(1)}" stroke-linecap="round">
+        <path d="M${L - a} ${Y - a} l${a * 2} ${a * 2} M${L + a} ${Y - a} l${-a * 2} ${a * 2}"/>
+        <path d="M${R - a} ${Y - a} l${a * 2} ${a * 2} M${R + a} ${Y - a} l${-a * 2} ${a * 2}"/></g>`;
     }
     const base =
       `<g>
-        <ellipse cx="${L}" cy="${Y}" rx="5.7" ry="6.1" fill="${ink}"/>
-        <ellipse cx="${R}" cy="${Y}" rx="5.7" ry="6.1" fill="${ink}"/>
-        <circle cx="${L - 1.8}" cy="${Y - 2.2}" r="1.8" fill="#fff" opacity=".92"/>
-        <circle cx="${R - 1.8}" cy="${Y - 2.2}" r="1.8" fill="#fff" opacity=".92"/>
+        <ellipse cx="${L}" cy="${Y}" rx="${rx}" ry="${ry}" fill="${ink}"/>
+        <ellipse cx="${R}" cy="${Y}" rx="${rx}" ry="${ry}" fill="${ink}"/>
+        <circle cx="${L - rx * 0.32}" cy="${Y - ry * 0.36}" r="${(rx * 0.32).toFixed(1)}" fill="#fff" opacity=".92"/>
+        <circle cx="${R - rx * 0.32}" cy="${Y - ry * 0.36}" r="${(rx * 0.32).toFixed(1)}" fill="#fff" opacity=".92"/>
       </g>`;
     if (mood === 'angry') {
-      return base + `<g stroke="${ink}" stroke-width="3.4" stroke-linecap="round" opacity=".85">
-        <path d="M${L - 7} ${Y - 11} l11 4"/><path d="M${R + 7} ${Y - 11} l-11 4"/></g>`;
+      return base + `<g stroke="${ink}" stroke-width="${(rx * 0.6).toFixed(1)}" stroke-linecap="round" opacity=".85">
+        <path d="M${L - rx * 1.23} ${Y - ry * 1.8} l${rx * 1.93} ${ry * 0.66}"/>
+        <path d="M${R + rx * 1.23} ${Y - ry * 1.8} l${-rx * 1.93} ${ry * 0.66}"/></g>`;
     }
     if (mood === 'sad') {
-      return base + `<g stroke="${ink}" stroke-width="3.2" stroke-linecap="round" opacity=".8">
-        <path d="M${L - 7} ${Y - 10} l11 5"/><path d="M${R + 7} ${Y - 10} l-11 5"/></g>
-        <path d="M${R + 5} ${Y + 4} q3 7 0 10 q-3 -3 0 -10" fill="#8FD3F4" opacity=".9"/>`;
+      return base + `<g stroke="${ink}" stroke-width="${(rx * 0.56).toFixed(1)}" stroke-linecap="round" opacity=".8">
+        <path d="M${L - rx * 1.23} ${Y - ry * 1.64} l${rx * 1.93} ${ry * 0.82}"/>
+        <path d="M${R + rx * 1.23} ${Y - ry * 1.64} l${-rx * 1.93} ${ry * 0.82}"/></g>
+        <path d="M${R + rx * 0.88} ${Y + ry * 0.66} q${rx * 0.53} ${ry * 1.15} 0 ${ry * 1.64} q${-rx * 0.53} ${-ry * 0.5} 0 ${-ry * 1.64}" fill="#8FD3F4" opacity=".9"/>`;
     }
     return base;
+  }
+  function eyes(mood, ink) { return eyesAt(mood, ink, 36, 64, 63, 5.7, 6.1); }
+
+  /** 実機モデル 正面の ちいさな くちばし（＋ピンクの くちライン） */
+  function beakPiyo(mood, gid) {
+    const y = FACE.by, w = FACE.bw;
+    const open = mood === 'happy' || mood === 'angry';
+    const mouth = `<path d="M${50 - w * 0.72} ${y + 1.4} q${w * 0.72} ${w * 0.36} ${w * 1.44} 0"
+      fill="none" stroke="#E8879C" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>`;
+    if (open) {
+      return `<g>
+        <path d="M${50 - w} ${y - 0.6} Q50 ${y - 4} ${50 + w} ${y - 0.6} Q50 ${y + 1.8} ${50 - w} ${y - 0.6}z" fill="#FFC94D"/>
+        <path d="M${50 - w * 0.82} ${y + 0.4} Q50 ${y + 5} ${50 + w * 0.82} ${y + 0.4} Q50 ${y + 2} ${50 - w * 0.82} ${y + 0.4}z" fill="#E28E0C"/>
+      </g>`;
+    }
+    return `<g>
+      <path d="M${50 - w} ${y} Q50 ${y - 4.4} ${50 + w} ${y} Q50 ${y + 4.4} ${50 - w} ${y}z" fill="url(#bk${gid})"/>
+      ${mouth}
+    </g>`;
   }
 
   function beak(kind, mood, gid) {
@@ -111,6 +170,27 @@ window.GP = window.GP || {};
   /* =========================================================
      そうび（前面 / 背面）
      ========================================================= */
+  // 実機シルエットは かおが たかめ・ほそめ なので、そうびを あわせて ずらす
+  const PIYO_ACC_FIT = {
+    straw:  { dy: -17, s: 0.9 },
+    goggle: { dy: -4,  s: 0.76 },
+    crown:  { dy: -2,  s: 0.82 },
+    whistle:{ dy: 4,   s: 0.92 },
+    towel:  { dy: -2,  s: 0.96 },
+    boots:  { dy: 5,   s: 1 },
+    gun:    { dy: 2,   s: 1 },
+    shield: { dy: 0,   s: 1 },
+    randsel:{ dy: 0,   s: 1 },
+    net:    { dy: 0,   s: 1 },
+  };
+  function fitAcc(kind, a, html) {
+    if (!html) return '';
+    if (kind !== 'piyo') return html;
+    const f = PIYO_ACC_FIT[a];
+    if (!f || (f.dy === 0 && f.s === 1)) return html;
+    return `<g transform="translate(50 ${f.dy}) scale(${f.s}) translate(-50 0)">${html}</g>`;
+  }
+
   const ACC_BACK = {
     randsel: () => `<g>
       <rect x="12" y="74" width="76" height="40" rx="13" fill="#B03F50"/>
@@ -218,38 +298,54 @@ window.GP = window.GP || {};
         </linearGradient>
       </defs>`;
 
-    const bodyPath =
-      'M50 18 C71 18 87.5 43 89 70 C90.5 98 74.5 118 50 118 C25.5 118 9.5 98 11 70 C12.5 43 29 18 50 18 z';
-
-    const back = accs.map((a) => (ACC_BACK[a] ? ACC_BACK[a]() : '')).join('');
-    const front = accs.map((a) => (ACC_FRONT[a] ? ACC_FRONT[a]() : '')).join('');
+    const back = accs.map((a) => fitAcc(kind, a, ACC_BACK[a] ? ACC_BACK[a]() : '')).join('');
+    const front = accs.map((a) => fitAcc(kind, a, ACC_FRONT[a] ? ACC_FRONT[a]() : '')).join('');
     const hasBoots = accs.indexOf('boots') >= 0;
 
-    const inner =
-      `${defs}
-       ${back}
-       <!-- とさか / みみ -->
-       ${crest(kind, light, main)}
-       <!-- あし -->
-       ${hasBoots ? '' :
-        `<g fill="${light}">
-          <ellipse cx="34" cy="120" rx="12" ry="8"/><ellipse cx="66" cy="120" rx="12" ry="8"/>
-        </g>`}
-       <!-- てばね -->
-       <g fill="${light}" opacity=".95">
-         <ellipse cx="8" cy="86" rx="9.5" ry="17" transform="rotate(-18 8 86)"/>
-         <ellipse cx="92" cy="86" rx="9.5" ry="17" transform="rotate(18 92 86)"/>
-       </g>
-       <!-- からだ -->
-       <path d="${bodyPath}" fill="url(#bd${gid})"/>
-       <path d="${bodyPath}" fill="url(#sh${gid})"/>
-       <ellipse cx="50" cy="107" rx="31" ry="11" fill="${deep}" opacity=".16"/>
-       <!-- かお（目の くぼみ） -->
-       <g opacity=".10"><ellipse cx="36" cy="63" rx="9.5" ry="8.5" fill="${deep}"/>
-         <ellipse cx="64" cy="63" rx="9.5" ry="8.5" fill="${deep}"/></g>
-       ${eyes(mood, ink)}
-       ${beak(kind, mood, gid)}
-       ${front}`;
+    let inner;
+    if (kind === 'piyo') {
+      // ---- 実機3Dモデルの 正面図から おこした かたち ----
+      const F = FACE;
+      inner =
+        `${defs}
+         ${back}
+         <!-- からだ（とさか・はね・あしを ふくむ 実機シルエット） -->
+         <path d="${piyoBodyD()}" fill="url(#bd${gid})"/>
+         <path d="${piyoBodyD()}" fill="url(#sh${gid})"/>
+         <ellipse cx="50" cy="114" rx="29" ry="9" fill="${deep}" opacity=".14"/>
+         <!-- かお -->
+         <g opacity=".08">
+           <ellipse cx="${F.exL}" cy="${F.ey}" rx="${F.erx + 2.4}" ry="${F.ery + 2.2}" fill="${deep}"/>
+           <ellipse cx="${F.exR}" cy="${F.ey}" rx="${F.erx + 2.4}" ry="${F.ery + 2.2}" fill="${deep}"/>
+         </g>
+         ${eyesAt(mood, ink, F.exL, F.exR, F.ey, F.erx, F.ery)}
+         ${beakPiyo(mood, gid)}
+         ${front}`;
+    } else {
+      // ---- カラス / ネコ（したがきの 2Dデザインを いじ） ----
+      const bodyPath =
+        'M50 18 C71 18 87.5 43 89 70 C90.5 98 74.5 118 50 118 C25.5 118 9.5 98 11 70 C12.5 43 29 18 50 18 z';
+      inner =
+        `${defs}
+         ${back}
+         ${crest(kind, light, main)}
+         ${hasBoots ? '' :
+          `<g fill="${light}">
+            <ellipse cx="34" cy="120" rx="12" ry="8"/><ellipse cx="66" cy="120" rx="12" ry="8"/>
+          </g>`}
+         <g fill="${light}" opacity=".95">
+           <ellipse cx="8" cy="86" rx="9.5" ry="17" transform="rotate(-18 8 86)"/>
+           <ellipse cx="92" cy="86" rx="9.5" ry="17" transform="rotate(18 92 86)"/>
+         </g>
+         <path d="${bodyPath}" fill="url(#bd${gid})"/>
+         <path d="${bodyPath}" fill="url(#sh${gid})"/>
+         <ellipse cx="50" cy="107" rx="31" ry="11" fill="${deep}" opacity=".16"/>
+         <g opacity=".10"><ellipse cx="36" cy="63" rx="9.5" ry="8.5" fill="${deep}"/>
+           <ellipse cx="64" cy="63" rx="9.5" ry="8.5" fill="${deep}"/></g>
+         ${eyes(mood, ink)}
+         ${beak(kind, mood, gid)}
+         ${front}`;
+    }
 
     const flip = o.flip ? ' transform="scale(-1,1) translate(-100,0)"' : '';
     const out =
@@ -271,12 +367,23 @@ window.GP = window.GP || {};
   /* =========================================================
      個体 → 見た目オプション
      ========================================================= */
+  /** そうびの 部位（おなじ部位は かさねず、そうびを 優先する） */
+  const ACC_SLOT = {
+    straw: 'head', crown: 'head', goggle: 'face',
+    gun: 'handR', shield: 'handL', net: 'back', randsel: 'back',
+    boots: 'feet', towel: 'waist', whistle: 'neck',
+  };
+
   function looksOf(unit, mood) {
     const D = GP.data;
     const sp = D.SPECIES_BY_ID[unit.sp];
     const acc = [];
-    if (unit.equip && D.EQUIP_BY_ID[unit.equip]) acc.push(unit.equip);
-    else if (sp && sp.acc) acc.push(sp.acc);
+    // 種族固有の もちもの（みずぴよの 水鉄砲 など）は そうびを つけても のこす。
+    // ただし おなじ部位（ぼうし×ぼうし 等）は そうび側だけを 見せる。
+    const spAcc = sp && sp.acc ? sp.acc : null;
+    const eq = unit.equip && D.EQUIP_BY_ID[unit.equip] ? unit.equip : null;
+    if (spAcc && (!eq || (spAcc !== eq && ACC_SLOT[spAcc] !== ACC_SLOT[eq]))) acc.push(spAcc);
+    if (eq) acc.push(eq);
     let hue = sp ? sp.hue : 205, sat = sp ? sp.sat : 76, lit = sp ? sp.lit : 56;
     if (unit.evo === 'legend') { sat = Math.min(sat + 14, 100); lit = Math.min(lit + 6, 80); }
     return { hue, sat, lit, kind: (sp && sp.kind) || 'piyo', acc, mood: mood || 'normal' };
@@ -319,6 +426,78 @@ window.GP = window.GP || {};
     ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.ellipse(50, 120, 28, 7, 0, 0, 7); ctx.fill();
     ctx.globalAlpha = 1;
+
+    if (kind === 'piyo') {
+      // ---- 実機シルエット（SVGと おなじ SHAPE から えがく） ----
+      const g = ctx.createLinearGradient(0, 6, 22, 127);
+      g.addColorStop(0, top); g.addColorStop(0.52, main); g.addColorStop(1, deep);
+      ctx.fillStyle = g;
+      tracePiyoBody(ctx);
+      ctx.fill();
+      const sg2 = ctx.createRadialGradient(38, 36, 2, 38, 36, 44);
+      sg2.addColorStop(0, 'rgba(255,255,255,.5)');
+      sg2.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sg2; ctx.fill();
+
+      const F = FACE;
+      const ink2 = '#17120E';
+      if (o.mood === 'ko') {
+        const a = F.erx * 1.05;
+        ctx.strokeStyle = ink2; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+        [F.exL, F.exR].forEach((ex) => {
+          ctx.beginPath();
+          ctx.moveTo(ex - a, F.ey - a); ctx.lineTo(ex + a, F.ey + a);
+          ctx.moveTo(ex + a, F.ey - a); ctx.lineTo(ex - a, F.ey + a);
+          ctx.stroke();
+        });
+      } else if (o.mood === 'happy') {
+        const w = F.erx * 1.1;
+        ctx.strokeStyle = ink2; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+        [F.exL, F.exR].forEach((ex) => {
+          ctx.beginPath();
+          ctx.moveTo(ex - w, F.ey + 1);
+          ctx.quadraticCurveTo(ex, F.ey - F.ery * 2.2, ex + w, F.ey + 1);
+          ctx.stroke();
+        });
+      } else {
+        ctx.fillStyle = ink2;
+        [F.exL, F.exR].forEach((ex) => {
+          ctx.beginPath(); ctx.ellipse(ex, F.ey, F.erx, F.ery, 0, 0, 7); ctx.fill();
+        });
+        ctx.fillStyle = 'rgba(255,255,255,.9)';
+        [F.exL, F.exR].forEach((ex) => {
+          ctx.beginPath(); ctx.arc(ex - F.erx * 0.32, F.ey - F.ery * 0.36, F.erx * 0.34, 0, 7); ctx.fill();
+        });
+        if (o.mood === 'angry' || o.mood === 'sad') {
+          const sgn = o.mood === 'angry' ? 1 : -1;
+          ctx.strokeStyle = ink2; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+          ctx.globalAlpha = 0.85;
+          ctx.beginPath();
+          ctx.moveTo(F.exL - F.erx * 1.3, F.ey - F.ery * 1.9 + (sgn < 0 ? 1 : 0));
+          ctx.lineTo(F.exL + F.erx * 0.7, F.ey - F.ery * 1.9 + sgn * 2);
+          ctx.moveTo(F.exR + F.erx * 1.3, F.ey - F.ery * 1.9 + (sgn < 0 ? 1 : 0));
+          ctx.lineTo(F.exR - F.erx * 0.7, F.ey - F.ery * 1.9 + sgn * 2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      }
+      // くちばし
+      const w2 = F.bw;
+      ctx.fillStyle = '#F5A81E';
+      ctx.beginPath();
+      ctx.moveTo(50 - w2, F.by);
+      ctx.quadraticCurveTo(50, F.by - 4.4, 50 + w2, F.by);
+      ctx.quadraticCurveTo(50, F.by + 4.4, 50 - w2, F.by);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(232,135,156,.85)'; ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(50 - w2 * 0.72, F.by + 1.4);
+      ctx.quadraticCurveTo(50, F.by + 1.4 + w2 * 0.36, 50 + w2 * 0.72, F.by + 1.4);
+      ctx.stroke();
+
+      ctx.restore();
+      return;
+    }
 
     // とさか / みみ
     if (kind === 'cat') {
@@ -412,5 +591,386 @@ window.GP = window.GP || {};
     ctx.restore();
   }
 
-  GP.piyo = { svg, node, looksOf, factionLooks, paint, hsl };
+  /* =========================================================
+     実機3Dモデル ビュー（WebGL）
+     tools/mesh.mjs が gelpyto_3D_mod.gltf から つくった
+     GP.piyoMesh（js/piyodata.js）を よみこんで えがく。
+     ・からだの 色は 2Dと おなじ 色相システム（hue/sat/lit）
+     ・じどうで まわる＋ドラッグで まわせる
+     ・canvas が DOM から きえたら じどうで かたづける
+     ========================================================= */
+
+  function hslToRgb(h, s, l) {
+    s /= 100; l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [f(0), f(8), f(4)];
+  }
+
+  let meshCache = null;
+  function decodeMesh() {
+    if (meshCache) return meshCache;
+    if (!GP.piyoMesh) return null;
+    const M = GP.piyoMesh;
+    const toBuf = (s) => {
+      const bin = atob(s);
+      const u = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+      return u.buffer;
+    };
+    const qpos = new Int16Array(toBuf(M.v));
+    const idx = new Uint16Array(toBuf(M.i));
+    const pos = new Float32Array(qpos.length);
+    for (let i = 0; i < qpos.length; i++) pos[i] = qpos[i] / M.q;
+    meshCache = { pos, nrm: buildNormals(pos, idx), idx, parts: M.parts };
+    return meshCache;
+  }
+
+  /** なめらか法線（三角形の 法線を 頂点に つみあげる） */
+  function buildNormals(pos, idx) {
+    const nrm = new Float32Array(pos.length);
+    for (let t = 0; t < idx.length; t += 3) {
+      const a = idx[t] * 3, b = idx[t + 1] * 3, c = idx[t + 2] * 3;
+      const ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2];
+      const vx = pos[c] - pos[a], vy = pos[c + 1] - pos[a + 1], vz = pos[c + 2] - pos[a + 2];
+      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      [a, b, c].forEach((o) => { nrm[o] += nx; nrm[o + 1] += ny; nrm[o + 2] += nz; });
+    }
+    for (let i = 0; i < nrm.length; i += 3) {
+      const d = Math.hypot(nrm[i], nrm[i + 1], nrm[i + 2]) || 1;
+      nrm[i] /= d; nrm[i + 1] /= d; nrm[i + 2] /= d;
+    }
+    return nrm;
+  }
+
+  /* =========================================================
+     3D そうび（プロシージャル生成）
+     モデル空間: x右 / y上（あし -0.98 〜 あたま +0.98）/ z 手前
+     ========================================================= */
+  function primNew() { return { v: [], i: [] }; }
+  function primBox(m, cx, cy, cz, w, h, d, yaw) {
+    const c = Math.cos(yaw || 0), sn = Math.sin(yaw || 0);
+    const base = m.v.length / 3;
+    const hw = w / 2, hh = h / 2, hd = d / 2;
+    for (let k = 0; k < 8; k++) {
+      const ox = (k & 1 ? hw : -hw), oy = (k & 2 ? hh : -hh), oz = (k & 4 ? hd : -hd);
+      m.v.push(cx + ox * c + oz * sn, cy + oy, cz - ox * sn + oz * c);
+    }
+    [[0, 1, 3], [0, 3, 2], [4, 6, 7], [4, 7, 5], [0, 4, 5], [0, 5, 1],
+     [2, 3, 7], [2, 7, 6], [0, 2, 6], [0, 6, 4], [1, 5, 7], [1, 7, 3]]
+      .forEach((t) => m.i.push(base + t[0], base + t[1], base + t[2]));
+  }
+  /** axis: 'y'（たて）/ 'z'（前むき）。rB=0 で 円すい */
+  function primCyl(m, cx, cy, cz, axis, rA, rB, h, seg, caps) {
+    const base = m.v.length / 3;
+    const halfs = h / 2;
+    for (let k = 0; k <= seg; k++) {
+      const a = (k / seg) * Math.PI * 2;
+      const ca = Math.cos(a), sa = Math.sin(a);
+      if (axis === 'y') {
+        m.v.push(cx + ca * rA, cy - halfs, cz + sa * rA);
+        m.v.push(cx + ca * rB, cy + halfs, cz + sa * rB);
+      } else {
+        m.v.push(cx + ca * rA, cy + sa * rA, cz - halfs);
+        m.v.push(cx + ca * rB, cy + sa * rB, cz + halfs);
+      }
+    }
+    for (let k = 0; k < seg; k++) {
+      const p0 = base + k * 2, p1 = p0 + 1, p2 = p0 + 2, p3v = p0 + 3;
+      m.i.push(p0, p2, p1, p1, p2, p3v);
+    }
+    if (caps !== false) {
+      const cA = m.v.length / 3;
+      if (axis === 'y') { m.v.push(cx, cy - halfs, cz); m.v.push(cx, cy + halfs, cz); }
+      else { m.v.push(cx, cy, cz - halfs); m.v.push(cx, cy, cz + halfs); }
+      for (let k = 0; k < seg; k++) {
+        m.i.push(cA, base + k * 2 + 2, base + k * 2);
+        m.i.push(cA + 1, base + k * 2 + 1, base + k * 2 + 3);
+      }
+    }
+  }
+  function primDone(m, color, gloss) {
+    return { pos: new Float32Array(m.v), idx: new Uint16Array(m.i), color, gloss };
+  }
+  const p3 = (f, color, gloss) => { const m = primNew(); f(m); return primDone(m, color, gloss); };
+  const C3 = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+  };
+
+  /** そうびID → 3Dパーツ群（2Dの 配色に あわせる） */
+  const ACC3D = {
+    straw: () => [
+      p3((m) => primCyl(m, 0, 0.66, 0, 'y', 0.60, 0.60, 0.045, 18), C3('#F5DFAE'), 0.25),
+      p3((m) => primCyl(m, 0, 0.78, 0, 'y', 0.34, 0.25, 0.22, 16), C3('#EFD9A4'), 0.25),
+      p3((m) => primCyl(m, 0, 0.705, 0, 'y', 0.35, 0.345, 0.075, 16, false), C3('#D9553F'), 0.3),
+    ],
+    crown: () => [
+      p3((m) => {
+        primCyl(m, 0, 0.80, 0, 'y', 0.28, 0.28, 0.13, 12, false);
+        for (let k = 0; k < 5; k++) {
+          const a = (k / 5) * Math.PI * 2 + 0.3;
+          primCyl(m, Math.cos(a) * 0.26, 0.935, Math.sin(a) * 0.26, 'y', 0.065, 0, 0.16, 8);
+        }
+      }, C3('#FFD24A'), 0.9),
+    ],
+    goggle: () => [
+      p3((m) => {
+        primCyl(m, -0.185, 0.366, 0.52, 'z', 0.155, 0.155, 0.08, 14, false);
+        primCyl(m, 0.185, 0.366, 0.52, 'z', 0.155, 0.155, 0.08, 14, false);
+        primBox(m, -0.42, 0.366, 0.30, 0.28, 0.09, 0.06, 0.6);
+        primBox(m, 0.42, 0.366, 0.30, 0.28, 0.09, 0.06, -0.6);
+        primBox(m, 0, 0.366, 0.545, 0.10, 0.07, 0.05, 0);
+      }, C3('#3E4C59'), 0.5),
+      p3((m) => {
+        primCyl(m, -0.185, 0.366, 0.545, 'z', 0.12, 0.12, 0.03, 14);
+        primCyl(m, 0.185, 0.366, 0.545, 'z', 0.12, 0.12, 0.03, 14);
+      }, C3('#BEEAF7'), 0.95),
+    ],
+    gun: () => [
+      p3((m) => primBox(m, 0.56, -0.10, 0.38, 0.14, 0.12, 0.32, 0.15), C3('#FF8A3D'), 0.6),
+      p3((m) => primBox(m, 0.56, -0.07, 0.58, 0.08, 0.07, 0.16, 0.15), C3('#63C6E0'), 0.7),
+      p3((m) => primBox(m, 0.56, -0.235, 0.30, 0.12, 0.17, 0.11, 0.15), C3('#F06C1F'), 0.5),
+      p3((m) => primCyl(m, 0.56, 0.03, 0.36, 'y', 0.075, 0.075, 0.10, 10), C3('#8FD3F4'), 0.9),
+    ],
+    shield: () => [
+      p3((m) => primBox(m, -0.63, -0.16, 0.26, 0.08, 0.54, 0.44, -0.25), C3('#D2A468'), 0.3),
+      p3((m) => primBox(m, -0.665, -0.16, 0.26, 0.03, 0.40, 0.30, -0.25), C3('#A97B45'), 0.3),
+    ],
+    boots: () => [
+      p3((m) => {
+        primBox(m, -0.24, -0.85, 0.14, 0.26, 0.18, 0.38, 0);
+        primBox(m, 0.24, -0.85, 0.14, 0.26, 0.18, 0.38, 0);
+      }, C3('#FFC93C'), 0.6),
+      p3((m) => {
+        primBox(m, -0.24, -0.945, 0.15, 0.28, 0.05, 0.40, 0);
+        primBox(m, 0.24, -0.945, 0.15, 0.28, 0.05, 0.40, 0);
+      }, C3('#E0A310'), 0.4),
+    ],
+    towel: () => [
+      p3((m) => primCyl(m, 0, -0.28, 0, 'y', 0.71, 0.68, 0.16, 20, false), C3('#EF6B6B'), 0.35),
+    ],
+    randsel: () => [
+      p3((m) => primBox(m, 0, -0.05, -0.56, 0.56, 0.52, 0.24, 0), C3('#B03F50'), 0.45),
+      p3((m) => primBox(m, 0, 0.14, -0.55, 0.58, 0.18, 0.27, 0), C3('#8E2E3E'), 0.45),
+    ],
+    whistle: () => [
+      p3((m) => primCyl(m, 0, 0.24, 0, 'y', 0.50, 0.47, 0.028, 18, false), C3('#EFE9DC'), 0.3),
+      p3((m) => primBox(m, 0.10, -0.10, 0.68, 0.17, 0.11, 0.10, 0.2), C3('#F0A020'), 0.7),
+    ],
+    net: () => [
+      p3((m) => {
+        primBox(m, 0.46, -0.12, -0.50, 0.055, 1.15, 0.055, 0);
+        primCyl(m, 0.46, 0.60, -0.50, 'z', 0.21, 0.21, 0.045, 14, false);
+      }, C3('#B98A50'), 0.3),
+      p3((m) => primCyl(m, 0.46, 0.60, -0.52, 'z', 0.19, 0.19, 0.015, 14), C3('#DFF0D8'), 0.2),
+    ],
+  };
+
+  const VS = `
+attribute vec3 aP; attribute vec3 aN;
+uniform mat4 uMVP; uniform mat3 uRot;
+varying vec3 vN;
+void main(){ vN = uRot * aN; gl_Position = uMVP * vec4(aP, 1.0); }`;
+  const FS = `
+precision mediump float;
+varying vec3 vN;
+uniform vec3 uColor; uniform float uGloss;
+void main(){
+  vec3 N = normalize(vN);
+  vec3 L = normalize(vec3(-0.38, 0.82, 0.6));
+  vec3 V = vec3(0.0, 0.0, 1.0);
+  float diff = max(dot(N, L), 0.0);
+  vec3 col = uColor * (0.52 + diff * 0.55);
+  float spec = pow(max(dot(reflect(-L, N), V), 0.0), 30.0) * uGloss;
+  float rim = pow(1.0 - max(dot(N, V), 0.0), 2.4) * 0.3;
+  col += vec3(spec) + uColor * rim;          /* ゲルの ツヤ */
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+  /* ---------- ちいさな行列 ---------- */
+  function mat4Perspective(fov, asp, near, far) {
+    const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
+    return [f / asp, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0];
+  }
+  function rotYX(yaw, pitch) {
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    // R = Rx(pitch) * Ry(yaw)（列優先 3x3）
+    return [cy, sp * sy, -cp * sy, 0, cp, sp, sy, -sp * cy, cp * cy];
+  }
+
+  /**
+   * 実機3Dモデルの ビューを つくる。
+   * @param {object} looks  looksOf()/factionLooks() の もどりち（hue/sat/lit/kind）
+   * @param {object} opts   { size:CSSpx, spin:bool, drag:bool, bob:bool }
+   * @returns {HTMLCanvasElement|null}  つかえない環境では null（よびだし側で SVG に フォールバック）
+   */
+  function view3d(looks, opts) {
+    const o = opts || {};
+    if (looks && looks.kind && looks.kind !== 'piyo') return null;   // カラス/ネコは 2Dのみ
+    const mesh = decodeMesh();
+    if (!mesh) return null;
+
+    const size = o.size || 110;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'piyo3d';
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(size * dpr);
+    canvas.height = Math.round(size * 1.12 * dpr);
+    canvas.style.width = size + 'px';
+    canvas.style.height = Math.round(size * 1.12) + 'px';
+
+    let gl;
+    try {
+      gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true });
+    } catch (e) { gl = null; }
+    if (!gl) return null;
+
+    const prog = gl.createProgram();
+    [[gl.VERTEX_SHADER, VS], [gl.FRAGMENT_SHADER, FS]].forEach(([type, src]) => {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src); gl.compileShader(sh); gl.attachShader(prog, sh);
+    });
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+    gl.useProgram(prog);
+
+    const makeBuf = (target, data) => {
+      const b = gl.createBuffer();
+      gl.bindBuffer(target, b);
+      gl.bufferData(target, data, gl.STATIC_DRAW);
+      return b;
+    };
+    const bufP = makeBuf(gl.ARRAY_BUFFER, mesh.pos);
+    const bufN = makeBuf(gl.ARRAY_BUFFER, mesh.nrm);
+    const bufI = makeBuf(gl.ELEMENT_ARRAY_BUFFER, mesh.idx);
+    const locP = gl.getAttribLocation(prog, 'aP');
+    const locN = gl.getAttribLocation(prog, 'aN');
+    gl.enableVertexAttribArray(locP);
+    gl.enableVertexAttribArray(locN);
+    const bindGeom = (bp, bn, bi) => {
+      gl.bindBuffer(gl.ARRAY_BUFFER, bp);
+      gl.vertexAttribPointer(locP, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, bn);
+      gl.vertexAttribPointer(locN, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bi);
+    };
+
+    // ---- そうび（プロシージャル3D）を くみたてる ----
+    const accGeoms = [];
+    ((looks && looks.acc) || []).forEach((a) => {
+      if (!ACC3D[a]) return;
+      ACC3D[a]().forEach((g) => {
+        accGeoms.push({
+          color: g.color, gloss: g.gloss === undefined ? 0.5 : g.gloss,
+          bp: makeBuf(gl.ARRAY_BUFFER, g.pos),
+          bn: makeBuf(gl.ARRAY_BUFFER, buildNormals(g.pos, g.idx)),
+          bi: makeBuf(gl.ELEMENT_ARRAY_BUFFER, g.idx),
+          n: g.idx.length,
+        });
+      });
+    });
+
+    const uMVP = gl.getUniformLocation(prog, 'uMVP');
+    const uRot = gl.getUniformLocation(prog, 'uRot');
+    const uColor = gl.getUniformLocation(prog, 'uColor');
+    const uGloss = gl.getUniformLocation(prog, 'uGloss');
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.clearColor(0, 0, 0, 0);
+
+    // パーツの いろ：からだは 2Dと おなじ 色相システムで
+    const partColor = (name) => {
+      if (name === 'body') return hslToRgb(looks.hue ?? 205, looks.sat ?? 76, looks.lit ?? 56);
+      if (name === 'eye') return [0.10, 0.085, 0.07];
+      if (name === 'beak') return [0.96, 0.66, 0.12];
+      return [0.95, 0.62, 0.70];                     // ほっぺ
+    };
+    const colors = {};
+    mesh.parts.forEach((pt) => { colors[pt.n] = partColor(pt.n); });
+
+    let yaw = o.yaw0 === undefined ? 0.35 : o.yaw0;
+    let pitch = 0.12, vy = o.spin === false ? 0 : 0.65;
+    let dragging = false, lx = 0, ly = 0, lastTouch = 0;
+    let rafId = 0, t0 = performance.now();
+
+    if (o.drag !== false) {
+      canvas.style.touchAction = 'none';
+      canvas.style.cursor = 'grab';
+      canvas.addEventListener('pointerdown', (e) => {
+        dragging = true; lx = e.clientX; ly = e.clientY;
+        canvas.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      });
+      canvas.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        yaw += (e.clientX - lx) * 0.013;
+        pitch = Math.max(-0.9, Math.min(0.9, pitch + (e.clientY - ly) * 0.01));
+        lx = e.clientX; ly = e.clientY;
+        lastTouch = performance.now();
+      });
+      const up = () => { dragging = false; lastTouch = performance.now(); };
+      canvas.addEventListener('pointerup', up);
+      canvas.addEventListener('pointercancel', up);
+    }
+
+    const proj = mat4Perspective(0.62, canvas.width / canvas.height, 0.4, 12);
+    const DIST = 3.5;
+
+    function frame(now) {
+      if (!canvas.isConnected) { destroy(); return; }
+      rafId = requestAnimationFrame(frame);
+      const dt = Math.min(0.05, (now - t0) / 1000); t0 = now;
+      if (!dragging && now - lastTouch > 900) yaw += vy * dt;
+
+      const bob = o.bob === false ? 0 : Math.sin(now / 480) * 0.03;
+      const R = rotYX(yaw, pitch);
+      // MVP = proj * translate(0, bob-0.04, -DIST) * R（4x4に くみたて）
+      const m = [
+        R[0], R[1], R[2], 0,
+        R[3], R[4], R[5], 0,
+        R[6], R[7], R[8], 0,
+        0, bob + 0.02, -DIST, 1,
+      ];
+      const mvp = new Float32Array(16);
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+        mvp[c * 4 + r] =
+          proj[0 * 4 + r] * m[c * 4 + 0] + proj[1 * 4 + r] * m[c * 4 + 1] +
+          proj[2 * 4 + r] * m[c * 4 + 2] + proj[3 * 4 + r] * m[c * 4 + 3];
+      }
+
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.uniformMatrix4fv(uMVP, false, mvp);
+      gl.uniformMatrix3fv(uRot, false, R);
+      bindGeom(bufP, bufN, bufI);
+      mesh.parts.forEach((pt) => {
+        const c = colors[pt.n];
+        gl.uniform3f(uColor, c[0], c[1], c[2]);
+        gl.uniform1f(uGloss, pt.n === 'body' ? 0.85 : 0.4);
+        gl.drawElements(gl.TRIANGLES, pt.c, gl.UNSIGNED_SHORT, pt.s * 2);
+      });
+      accGeoms.forEach((g) => {
+        bindGeom(g.bp, g.bn, g.bi);
+        gl.uniform3f(uColor, g.color[0], g.color[1], g.color[2]);
+        gl.uniform1f(uGloss, g.gloss);
+        gl.drawElements(gl.TRIANGLES, g.n, gl.UNSIGNED_SHORT, 0);
+      });
+    }
+
+    function destroy() {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      const ext = gl.getExtension('WEBGL_lose_context');
+      if (ext) ext.loseContext();
+    }
+
+    rafId = requestAnimationFrame(frame);
+    return canvas;
+  }
+
+  function has3d() { return !!GP.piyoMesh; }
+
+  GP.piyo = { svg, node, looksOf, factionLooks, paint, hsl, view3d, has3d };
 })(window.GP);
