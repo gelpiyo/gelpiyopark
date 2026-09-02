@@ -116,6 +116,25 @@ function unitTests(GP) {
   st.lastSeen = Date.now() - 3600 * 1000 * 4;
   const off = St.applyOffline();
   ok(off && off.hours > 3.9, 'るすばん せいさんが けいさん される');
+  ok(!off.days, '8時間いないは 日送りしない');
+
+  // 長期るす：8時間ごえは (超過÷8 切り捨て) 日 すすむ
+  // ホーム1マスしか ない ときは のっとりが 起きない
+  const day0 = st.day;
+  st.lastSeen = Date.now() - 3600 * 1000 * 30;   // 30時間 → 超過22h → 2日
+  const off2 = St.applyOffline();
+  ok(off2 && off2.days === 2 && st.day === day0 + 2, '30時間るすで 2日 すすむ（実際 ' + (off2 && off2.days) + '日）');
+  ok(off2.stolen.length === 0 && St.shares().player === 1, 'さいごの 1マスは のっとられない');
+
+  // 複数マス もちの 長期るす：まもり最小の マスが 最弱勢力に のっとられる（1日1マス）
+  st.tiles.t02.owner = 'player'; st.tiles.t02.def = 1;
+  st.tiles.t06.owner = 'player'; st.tiles.t06.def = 2;
+  st.lastSeen = Date.now() - 3600 * 1000 * 30;   // +2日 → 2マス のっとられる
+  const p0 = St.shares().player;
+  const off3 = St.applyOffline();
+  ok(off3.stolen.length === 2, 'るす2日で 2マス のっとられる（実際 ' + off3.stolen.length + '）');
+  ok(St.shares().player === p0 - 2, '自区画が 2 へる');
+  ok(off3.stolen.every((x) => D.RIVALS.indexOf(x.fac) >= 0), 'のっとりさきは ライバル勢力');
 
   return fails;
 }

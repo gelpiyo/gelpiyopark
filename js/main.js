@@ -51,9 +51,14 @@ window.GP = window.GP || {};
     if (fresh) {
       setTimeout(showHowTo, 260);
     } else {
+      // るすばん生産 → かくてい前スカウトの ふくげん → エンディング の じゅんに 1つずつ
+      const endingIfNeeded = () => { if (St.st.ended) setTimeout(showEnding, 200); };
+      const resumeScout = () => { GP.gacha.resumePending(endingIfNeeded); };
       const off = St.applyOffline();
-      if (off) showOffline(off);
-      if (St.st.ended) setTimeout(showEnding, 300);
+      UI.refreshHud();
+      UI.rerender();
+      if (off) showOffline(off, resumeScout);
+      else resumeScout();
     }
     St.persist();
   }
@@ -75,23 +80,53 @@ window.GP = window.GP || {};
   /* =========================================================
      るすばん せいさん
      ========================================================= */
-  function showOffline(off) {
+  function showOffline(off, after) {
     const row = el('div', { class: 'cost-row' });
     D.RES_ORDER.forEach((k) => {
       if (!off.gained[k]) return;
       row.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + off.gained[k]));
     });
-    if (!row.children.length) return;
+    if (!row.children.length && !off.days) { if (after) after(); return; }
     const h = off.hours;
     const txt = h >= 1 ? Math.floor(h) + '時間' + Math.round((h % 1) * 60) + 'ふん' : Math.round(h * 60) + 'ふん';
+    const body = el('div');
+    body.appendChild(el('p', {
+      class: 'hint',
+      text: `るすの あいだ（${off.days ? txt + '＋α' : txt}）に ゲルぴよたちが あつめて くれました。`,
+    }));
+    if (row.children.length) body.appendChild(row);
+    if (off.days) {
+      body.appendChild(el('div', { class: 'panel', style: 'background:#FFF3D0;margin-bottom:0' }, [
+        el('div', { class: 'panel-title', text: `📅 ながい るすで 日づけが ${off.days}日 すすんだ` }),
+        el('p', {
+          class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
+          text: `DAY ${off.dayFrom} → DAY ${off.dayTo}。まいにちの しゅうかくは うけとりずみ。` +
+            'ライバルたちも うごいたみたい（こうえん日記を チェック）。',
+        }),
+      ]));
+      const stolen = off.stolen || [];
+      if (stolen.length) {
+        const names = stolen.slice(0, 3)
+          .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}`)
+          .join('、');
+        body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
+          el('div', { class: 'panel-title', text: `⚠ るす中に 区画を ${stolen.length}こ のっとられた！` }),
+          el('p', {
+            class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
+            text: names + (stolen.length > 3 ? ' など。' : '。') +
+              ' まもりの よわい マスから ねらわれます。とりかえそう！',
+          }),
+        ]));
+      }
+    }
     UI.modal({
       title: '🏡 おかえりなさい！',
-      body: el('div', {}, [
-        el('p', { class: 'hint', text: `るすの あいだ（${txt}）に ゲルぴよたちが あつめて くれました。` }),
-        row,
-      ]),
+      body,
       buttons: [{ label: 'うけとる', cls: 'btn-accent' }],
-      onClose: () => { UI.refreshHud(); UI.rerender(); },
+      onClose: () => {
+        UI.refreshHud(); UI.rerender();
+        if (after) setTimeout(after, 120);
+      },
     });
   }
 
@@ -116,7 +151,7 @@ window.GP = window.GP || {};
       'あきちを タップして ゆうぐを たてる。ゆうぐが ざいりょうを うみ、ごきげん度も あがる。',
       'ごきげん度が たかいほど せいさんも せんとうりょくも アップ。ひくいと だだっこストライキ！',
       '「つぎの日へ」で しゅうかく＋ライバルの こうどう。1日 1回 すすむ。',
-      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。',
+      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 1日 1こ のっとられます（さいごの 1マスは あんぜん）。',
     ]);
     sec('🗺 なわばり', [
       'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき ⚡を 1 つかう。',

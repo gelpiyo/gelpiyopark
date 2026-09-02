@@ -3,7 +3,7 @@
    ・初回アクセス後は オフラインでも あそべる
    ・更新は「ネット優先→だめならキャッシュ」で 反映する
    ========================================================= */
-const CACHE = 'gelpiyo-park-v3';
+const CACHE = 'gelpiyo-park-v4';
 const ASSETS = [
   './',
   './index.html',

@@ -1156,7 +1156,7 @@ window.GP = window.GP || {};
     { id: 't12', q: -1, r:  2, name: 'ひなたの えんがわ',  ter: 'sunaba',  owner: 'cat',    def: 4 },
     { id: 't13', q: -2, r:  2, name: 'ねこじゃらし小道',   ter: 'kodachi', owner: 'cat',    def: 5 },
     { id: 't14', q: -2, r:  1, name: 'かくれんぼ横丁',     ter: 'kodachi', owner: 'none',   def: 3 },
-    { id: 't15', q: -2, r:  0, name: 'だがしや通り',       ter: 'hiroba',  owner: 'none',   def: 3 },
+    { id: 't15', q: -2, r:  0, name: 'だがしや通り',       ter: 'hiroba',  owner: 'red',    def: 4 },
     { id: 't16', q:  1, r: -2, name: 'まつぼっくりの森',   ter: 'kodachi', owner: 'none',   def: 3 },
     { id: 't17', q:  0, r: -2, name: 'ゆうひ台',           ter: 'oka',     owner: 'red',    def: 5 },
     { id: 't18', q: -1, r: -1, name: 'あかぴよ ひみつ基地', ter: 'sunaba', owner: 'red',    def: 6 },
@@ -1959,6 +1959,15 @@ window.GP = window.GP || {};
       }
     }
   }
+  /** from 以降に つくった 頂点を、点(cx,cy,cz)を 支点に x軸まわりで かたむける */
+  function primTilt(m, from, cx, cy, cz, ax) {
+    const c = Math.cos(ax), sn = Math.sin(ax);
+    for (let i = from; i < m.v.length; i += 3) {
+      const y = m.v[i + 1] - cy, z = m.v[i + 2] - cz;
+      m.v[i + 1] = cy + y * c - z * sn;
+      m.v[i + 2] = cz + y * sn + z * c;
+    }
+  }
   function primDone(m, color, gloss) {
     return { pos: new Float32Array(m.v), idx: new Uint16Array(m.i), color, gloss };
   }
@@ -1976,11 +1985,12 @@ window.GP = window.GP || {};
       p3((m) => primCyl(m, 0, 0.705, 0, 'y', 0.35, 0.345, 0.075, 16, false), C3('#D9553F'), 0.3),
     ],
     crown: () => [
+      // あたまの実測: 半径0.28 ≒ y0.65 → リング下端を あたまに くいこませて すき間ゼロ
       p3((m) => {
-        primCyl(m, 0, 0.80, 0, 'y', 0.28, 0.28, 0.13, 12, false);
+        primCyl(m, 0, 0.65, 0, 'y', 0.285, 0.27, 0.15, 12, false);
         for (let k = 0; k < 5; k++) {
           const a = (k / 5) * Math.PI * 2 + 0.3;
-          primCyl(m, Math.cos(a) * 0.26, 0.935, Math.sin(a) * 0.26, 'y', 0.065, 0, 0.16, 8);
+          primCyl(m, Math.cos(a) * 0.25, 0.795, Math.sin(a) * 0.25, 'y', 0.06, 0, 0.15, 8);
         }
       }, C3('#FFD24A'), 0.9),
     ],
@@ -1988,8 +1998,9 @@ window.GP = window.GP || {};
       p3((m) => {
         primCyl(m, -0.185, 0.366, 0.52, 'z', 0.155, 0.155, 0.08, 14, false);
         primCyl(m, 0.185, 0.366, 0.52, 'z', 0.155, 0.155, 0.08, 14, false);
-        primBox(m, -0.42, 0.366, 0.30, 0.28, 0.09, 0.06, 0.6);
-        primBox(m, 0.42, 0.366, 0.30, 0.28, 0.09, 0.06, -0.6);
+        // よこヒモ：レンズの ふち（x±0.34, z0.51）から あたまの よこ後方（z0.09）へ
+        primBox(m, -0.405, 0.366, 0.30, 0.44, 0.10, 0.05, -1.25);
+        primBox(m, 0.405, 0.366, 0.30, 0.44, 0.10, 0.05, 1.25);
         primBox(m, 0, 0.366, 0.545, 0.10, 0.07, 0.05, 0);
       }, C3('#3E4C59'), 0.5),
       p3((m) => {
@@ -1998,23 +2009,27 @@ window.GP = window.GP || {};
       }, C3('#BEEAF7'), 0.95),
     ],
     gun: () => [
-      p3((m) => primBox(m, 0.56, -0.10, 0.38, 0.14, 0.12, 0.32, 0.15), C3('#FF8A3D'), 0.6),
-      p3((m) => primBox(m, 0.56, -0.07, 0.58, 0.08, 0.07, 0.16, 0.15), C3('#63C6E0'), 0.7),
-      p3((m) => primBox(m, 0.56, -0.235, 0.30, 0.12, 0.17, 0.11, 0.15), C3('#F06C1F'), 0.5),
-      p3((m) => primCyl(m, 0.56, 0.03, 0.36, 'y', 0.075, 0.075, 0.10, 10), C3('#8FD3F4'), 0.9),
+      // はねさきの実測 (x0.70, y-0.16, z0.05) に グリップを かさねて「もたせる」
+      p3((m) => primBox(m, 0.70, -0.12, 0.28, 0.13, 0.12, 0.34, 0), C3('#FF8A3D'), 0.6),
+      p3((m) => primBox(m, 0.70, -0.09, 0.50, 0.07, 0.07, 0.16, 0), C3('#63C6E0'), 0.7),
+      p3((m) => primBox(m, 0.70, -0.24, 0.14, 0.11, 0.18, 0.12, 0.1), C3('#F06C1F'), 0.5),
+      p3((m) => primCyl(m, 0.70, 0.00, 0.24, 'y', 0.075, 0.075, 0.10, 10), C3('#8FD3F4'), 0.9),
     ],
     shield: () => [
-      p3((m) => primBox(m, -0.63, -0.16, 0.26, 0.08, 0.54, 0.44, -0.25), C3('#D2A468'), 0.3),
-      p3((m) => primBox(m, -0.665, -0.16, 0.26, 0.03, 0.40, 0.30, -0.25), C3('#A97B45'), 0.3),
+      // ひだり前に かまえた 板（あつみ方向 d を そとむきに して、体表の そとに 出す）
+      p3((m) => primBox(m, -0.566, -0.14, 0.500, 0.56, 0.64, 0.05, -0.35), C3('#A97B45'), 0.3),
+      p3((m) => primBox(m, -0.578, -0.14, 0.532, 0.46, 0.54, 0.06, -0.35), C3('#D2A468'), 0.35),
     ],
     boots: () => [
+      // あしの実測: x ±0.02..0.43 / y -0.98..-0.85 / つまさき z +0.49 まで
+      // → つまさきを すっぽり つつむ 位置に（うしろは 胴の底に つながる）
       p3((m) => {
-        primBox(m, -0.24, -0.85, 0.14, 0.26, 0.18, 0.38, 0);
-        primBox(m, 0.24, -0.85, 0.14, 0.26, 0.18, 0.38, 0);
+        primBox(m, -0.24, -0.83, 0.36, 0.34, 0.30, 0.54, 0);
+        primBox(m, 0.24, -0.83, 0.36, 0.34, 0.30, 0.54, 0);
       }, C3('#FFC93C'), 0.6),
       p3((m) => {
-        primBox(m, -0.24, -0.945, 0.15, 0.28, 0.05, 0.40, 0);
-        primBox(m, 0.24, -0.945, 0.15, 0.28, 0.05, 0.40, 0);
+        primBox(m, -0.24, -0.965, 0.38, 0.37, 0.05, 0.60, 0);
+        primBox(m, 0.24, -0.965, 0.38, 0.37, 0.05, 0.60, 0);
       }, C3('#E0A310'), 0.4),
     ],
     towel: () => [
@@ -2029,11 +2044,18 @@ window.GP = window.GP || {};
       p3((m) => primBox(m, 0.10, -0.10, 0.68, 0.17, 0.11, 0.10, 0.2), C3('#F0A020'), 0.7),
     ],
     net: () => [
+      // はねさき (0.70, -0.16, 0.05) を にぎり点に、柄を まえに かたむけて もつ
       p3((m) => {
-        primBox(m, 0.46, -0.12, -0.50, 0.055, 1.15, 0.055, 0);
-        primCyl(m, 0.46, 0.60, -0.50, 'z', 0.21, 0.21, 0.045, 14, false);
+        const f = m.v.length;
+        primBox(m, 0.70, 0.10, 0.05, 0.055, 1.15, 0.055, 0);
+        primCyl(m, 0.70, 0.68, 0.05, 'z', 0.22, 0.22, 0.05, 14, false);
+        primTilt(m, f, 0.70, -0.16, 0.05, 0.30);
       }, C3('#B98A50'), 0.3),
-      p3((m) => primCyl(m, 0.46, 0.60, -0.52, 'z', 0.19, 0.19, 0.015, 14), C3('#DFF0D8'), 0.2),
+      p3((m) => {
+        const f = m.v.length;
+        primCyl(m, 0.70, 0.68, 0.03, 'z', 0.20, 0.20, 0.015, 14);
+        primTilt(m, f, 0.70, -0.16, 0.05, 0.30);
+      }, C3('#DFF0D8'), 0.2),
     ],
   };
 
@@ -2159,7 +2181,15 @@ void main(){
     const colors = {};
     mesh.parts.forEach((pt) => { colors[pt.n] = partColor(pt.n); });
 
-    let yaw = o.yaw0 === undefined ? 0.35 : o.yaw0;
+    // そうびが よこ・うしろに つくものは、まず 見える むきで ひらく
+    const ACC_FACE_YAW = {
+      gun: -0.55, whistle: -0.25, shield: 0.55, net: -0.5,
+      randsel: Math.PI * 0.9,
+    };
+    const accArr = (looks && looks.acc) || [];
+    const lastAcc = accArr[accArr.length - 1];
+    const yawStart = ACC_FACE_YAW[lastAcc] !== undefined ? ACC_FACE_YAW[lastAcc] : 0.35;
+    let yaw = o.yaw0 === undefined ? yawStart : o.yaw0;
     let pitch = 0.12, vy = o.spin === false ? 0 : 0.65;
     let dragging = false, lx = 0, ly = 0, lastTouch = 0;
     let rafId = 0, t0 = performance.now();
@@ -2377,6 +2407,7 @@ window.GP = window.GP || {};
       tiles: {},
       factions: {},
       freeScoutDay: 0,
+      pendingScout: null,   // かくてい前の スカウト結果（とじても きえないように）
       log: [],
       stats: { battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 },
       lastSeen: Date.now(),
@@ -2709,6 +2740,7 @@ window.GP = window.GP || {};
      ========================================================= */
   function nextDay(opts) {
     const st = S.data;
+    const noPlayerAttack = !!(opts && opts.noPlayerAttack);
     const rng = U.makeRng((st.seed + st.day * 7919) >>> 0);
     const rep = {
       day: st.day, income: {}, event: null, kigenBefore: st.kigen,
@@ -2755,7 +2787,7 @@ window.GP = window.GP || {};
     });
 
     // --- ライバル AI ---
-    runAI(rng, rep);
+    runAI(rng, rep, noPlayerAttack);
 
     // --- 日づけ ---
     st.day += 1;
@@ -2774,7 +2806,7 @@ window.GP = window.GP || {};
   }
 
   /* ---------- ライバル AI ---------- */
-  function runAI(rng, rep) {
+  function runAI(rng, rep, noPlayerAttack) {
     const st = S.data;
     const order = rng.shuffle(D.RIVALS.slice());
     let playerAttacked = false;
@@ -2800,7 +2832,7 @@ window.GP = window.GP || {};
         tileNeighborIds(id).forEach((nid) => {
           const o = st.tiles[nid].owner;
           if (o === fid) return;
-          if (o === 'player' && (fs.pact > 0 || playerAttacked)) return;
+          if (o === 'player' && (noPlayerAttack || fs.pact > 0 || playerAttacked)) return;
           let w = 10;
           if (o === 'none') w = 16;
           else if (o === 'player') w = 12 + Math.max(0, 6 - tileDefense(nid));
@@ -2872,6 +2904,8 @@ window.GP = window.GP || {};
     const hours = (now - (st.lastSeen || now)) / 3600000;
     st.lastSeen = now;
     if (hours < 0.05) return null;
+
+    // さいしょの 8時間ぶんは 放置生産として しかく回収
     const h = Math.min(hours, R.offlineCapH);
     const inc = income();
     const out = {};
@@ -2880,9 +2914,51 @@ window.GP = window.GP || {};
       const v = Math.floor(inc[k] * h * R.offlineRate);
       if (v > 0) { out[k] = v; any = true; }
     }
-    if (!any) return null;
-    gain(out);
-    return { hours: h, gained: out };
+    if (any) gain(out);
+
+    // 8時間を こえた ぶんは「8時間 = 1日」で 日づけを すすめる（超過÷8 切り捨て）
+    // 防衛バトルは はさめないので ランダムな しゅうげきは 起きないが、
+    // 1日ごとに「まもりが いちばん ひくい マス」を いちばん よわい 勢力に のっとられる
+    let days = 0;
+    const stolen = [];
+    const dayFrom = st.day;
+    if (hours > R.offlineCapH && !st.ended) {
+      const want = Math.floor((hours - R.offlineCapH) / R.offlineCapH);
+      while (days < want && days < 90 && !st.ended) {
+        nextDay({ noPlayerAttack: true });
+        days++;
+        const hit = offlineSteal();
+        if (hit) stolen.push(hit);
+      }
+      st.lastSeen = now;               // nextDay が 上書きするので もどす
+    }
+
+    if (!any && !days) return null;
+    return { hours: h, gained: out, days, dayFrom, dayTo: st.day, stolen };
+  }
+
+  /** るす中の のっとり：まもり最小の 自マスを、区画数が いちばん すくない 勢力へ */
+  function offlineSteal() {
+    const st = S.data;
+    const mine = ownedTileIds();
+    if (mine.length <= 1) return null;           // さいごの 1マスまでは うばわれない
+    let tid = mine[0];
+    mine.forEach((id) => { if (tileDefense(id) < tileDefense(tid)) tid = id; });
+    const sh = shares();
+    const alive = D.RIVALS.filter((f) => sh[f] > 0);
+    if (!alive.length) return null;
+    alive.sort((a, b) =>
+      sh[a] - sh[b] || (D.FACTIONS[a].power || 1) - (D.FACTIONS[b].power || 1));
+    const fac = alive[0];
+    const t = tileById(tid);
+    st.tiles[tid].owner = fac;
+    st.tiles[tid].days = 0;
+    st.tiles[tid].def = Math.max(2, Math.round(t.def * 0.8));
+    st.stats.lost += 1;
+    st.kigenMod -= 6;
+    st.kigen = U.clamp(Math.round(kigenTarget() + st.kigenMod), 0, 100);
+    log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」を のっとった…`, 'bad');
+    return { tile: tid, name: t.name, fac };
   }
 
   /* =========================================================
@@ -2934,6 +3010,7 @@ window.GP = window.GP || {};
     d.stats = Object.assign({ battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 }, d.stats);
     d.seen = d.seen || {};
     d.equips = d.equips || {};
+    d.pendingScout = Array.isArray(d.pendingScout) ? d.pendingScout : null;
     S.data = d;
     return d;
   }
@@ -4589,19 +4666,31 @@ window.GP = window.GP || {};
     // ここでは まだ なかまに くわえない。
     // けっか画面で「なかまに する／にがす」を えらんでから かくてい する。
     const rng = U.rnd;
-    const results = [];
+    const records = [];
     const batchSeen = new Set();
     for (let i = 0; i < count; i++) {
       const sp = rollOne(rng, guaranteeR && i === count - 1);
-      results.push({ sp, isNew: !st.seen[sp.id] && !batchSeen.has(sp.id), marked: false });
+      records.push({ sp: sp.id, isNew: !st.seen[sp.id] && !batchSeen.has(sp.id), marked: false });
       batchSeen.add(sp.id);
     }
     st.stats.scouts += count;
+    // かくてい前に とじても ひかない ぶんが きえないよう、けっかを 先に ほぞん
+    st.pendingScout = records;
     St.persist();
     rolling = false;
     UI.refreshHud();
     render();
-    showResults(results);
+    showResults(records);
+  }
+
+  /** 再開時：かくてい前の スカウト結果が のこっていたら モーダルを ふくげんする */
+  function resumePending(after) {
+    const st = St.st;
+    if (!st || !st.pendingScout || !st.pendingScout.length) {
+      if (after) after();
+      return;
+    }
+    showResults(st.pendingScout, after, true);
   }
 
   /** 種族を なかまに くわえる（あふれ / かぶり の しょり こみ） */
@@ -4631,9 +4720,19 @@ window.GP = window.GP || {};
   /* =========================================================
      けっか — 「なかまに する」か「にがす」を えらんで かくてい
      ========================================================= */
-  function showResults(results) {
+  function showResults(records, after, resumed) {
     const st = St.st;
-    const multi = results.length > 1;
+    // ほぞん形式（種族ID）から 表示用に ひく。しらない IDは とばす（将来の互換）
+    const items = records
+      .map((rec) => ({ rec, sp: D.SPECIES_BY_ID[rec.sp] }))
+      .filter((x) => x.sp);
+    if (!items.length) {
+      st.pendingScout = null;
+      St.persist();
+      if (after) after();
+      return;
+    }
+    const multi = items.length > 1;
     let decided = false;
 
     /** mode: 'keep' = にがすマークの ない子を なかまに ／ 'release' = ぜんいん にがす */
@@ -4641,17 +4740,18 @@ window.GP = window.GP || {};
       if (decided) return;
       decided = true;
       let kept = 0, gotKakera = 0;
-      results.forEach((r) => {
-        if (mode === 'release' || r.marked) {
-          const k = D.RULES.dupKakera[r.sp.rar];
+      items.forEach(({ rec, sp }) => {
+        if (mode === 'release' || rec.marked) {
+          const k = D.RULES.dupKakera[sp.rar];
           st.res.kakera += k;
           gotKakera += k;
           return;
         }
-        const out = addSpecies(r.sp);              // 上限・かぶりの じどう変換は ここで
+        const out = addSpecies(sp);              // 上限・かぶりの じどう変換は ここで
         if (out.kind === 'unit') kept += 1;
         else gotKakera += out.kakera;
       });
+      st.pendingScout = null;                    // かくてい したので ほぞんを けす
       St.persist();
       UI.refreshHud();
       if (kept) UI.toast(`なかまが ${kept}ぴよ ふえた！` + (gotKakera ? `　🧩+${gotKakera}` : ''), 'good');
@@ -4659,34 +4759,42 @@ window.GP = window.GP || {};
     };
 
     const body = el('div');
+    if (resumed) {
+      body.appendChild(el('p', {
+        class: 'hint',
+        style: 'margin-top:0',
+        text: 'とじる まえの スカウトけっかを ふくげん しました。',
+      }));
+    }
     const grid = el('div', { class: 'result-grid' });
 
-    results.forEach((r, i) => {
-      const rar = D.RARITY[r.sp.rar];
+    items.forEach(({ rec, sp }, i) => {
+      const rar = D.RARITY[sp.rar];
       const cell = el(multi ? 'button' : 'div', {
-        class: 'result-cell' + (r.isNew ? ' is-new' : ''),
+        class: 'result-cell' + (rec.isNew ? ' is-new' : '') + (rec.marked ? ' is-release' : ''),
         type: multi ? 'button' : null,
         style: 'animation-delay:' + (i * 70) + 'ms',
       });
       cell.innerHTML = GP.piyo.svg({
-        hue: r.sp.hue, sat: r.sp.sat, lit: r.sp.lit,
-        kind: r.sp.kind || 'piyo', acc: r.sp.acc ? [r.sp.acc] : [], mood: 'happy',
+        hue: sp.hue, sat: sp.sat, lit: sp.lit,
+        kind: sp.kind || 'piyo', acc: sp.acc ? [sp.acc] : [], mood: 'happy',
       });
       cell.appendChild(el('div', { class: 'rn', style: 'color:' + rar.color, text: rar.name }));
-      cell.appendChild(el('div', { class: 'rn', text: r.sp.name }));
-      if (r.isNew) cell.appendChild(el('span', { class: 'newtag', text: 'NEW' }));
+      cell.appendChild(el('div', { class: 'rn', text: sp.name }));
+      if (rec.isNew) cell.appendChild(el('span', { class: 'newtag', text: 'NEW' }));
       cell.appendChild(el('span', { class: 'reltag', text: 'にがす' }));
       if (multi) {
         cell.addEventListener('click', () => {
-          r.marked = !r.marked;
-          cell.classList.toggle('is-release', r.marked);
+          rec.marked = !rec.marked;
+          cell.classList.toggle('is-release', rec.marked);
+          St.persist();                          // マークも ほぞん（再開時に ひきつぐ）
         });
       }
       grid.appendChild(cell);
     });
     body.appendChild(grid);
 
-    const news = results.filter((r) => r.isNew).length;
+    const news = items.filter((x) => x.rec.isNew).length;
     if (news) body.appendChild(el('p', { class: 'hint', text: `あたらしい なかま ${news} しゅるい！` }));
     if (multi) {
       body.appendChild(el('p', {
@@ -4701,8 +4809,8 @@ window.GP = window.GP || {};
         'なかまが いっぱいの ときや おなじ子が 3びき いるときも かけらに なります。',
     }));
 
-    const best = results.reduce((a, r) =>
-      D.RARITY[r.sp.rar].star > D.RARITY[a.sp.rar].star ? r : a, results[0]);
+    const best = items.reduce((a, x) =>
+      D.RARITY[x.sp.rar].star > D.RARITY[a.sp.rar].star ? x : a, items[0]);
     const title = D.RARITY[best.sp.rar].star === 3 ? '✨ SR が でた！' : 'スカウト けっか';
 
     UI.modal({
@@ -4712,7 +4820,11 @@ window.GP = window.GP || {};
         { label: 'なかまに する', cls: 'btn-accent', onClick: () => commit('keep') },
       ],
       // ✕や 背景タップで とじたときは「なかまに する」あつかい（まちがって きえないように）
-      onClose: () => { commit('keep'); UI.rerender(); },
+      onClose: () => {
+        commit('keep');
+        UI.rerender();
+        if (after) setTimeout(after, 150);
+      },
     });
   }
 
@@ -4733,7 +4845,7 @@ window.GP = window.GP || {};
     UI.register('gacha', { render });
   }
 
-  GP.gacha = { init, render, addSpecies };
+  GP.gacha = { init, render, addSpecies, resumePending };
 })(window.GP);
 
 /* ===== js/battle.js ===== */
@@ -6229,9 +6341,14 @@ window.GP = window.GP || {};
     if (fresh) {
       setTimeout(showHowTo, 260);
     } else {
+      // るすばん生産 → かくてい前スカウトの ふくげん → エンディング の じゅんに 1つずつ
+      const endingIfNeeded = () => { if (St.st.ended) setTimeout(showEnding, 200); };
+      const resumeScout = () => { GP.gacha.resumePending(endingIfNeeded); };
       const off = St.applyOffline();
-      if (off) showOffline(off);
-      if (St.st.ended) setTimeout(showEnding, 300);
+      UI.refreshHud();
+      UI.rerender();
+      if (off) showOffline(off, resumeScout);
+      else resumeScout();
     }
     St.persist();
   }
@@ -6253,23 +6370,53 @@ window.GP = window.GP || {};
   /* =========================================================
      るすばん せいさん
      ========================================================= */
-  function showOffline(off) {
+  function showOffline(off, after) {
     const row = el('div', { class: 'cost-row' });
     D.RES_ORDER.forEach((k) => {
       if (!off.gained[k]) return;
       row.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + off.gained[k]));
     });
-    if (!row.children.length) return;
+    if (!row.children.length && !off.days) { if (after) after(); return; }
     const h = off.hours;
     const txt = h >= 1 ? Math.floor(h) + '時間' + Math.round((h % 1) * 60) + 'ふん' : Math.round(h * 60) + 'ふん';
+    const body = el('div');
+    body.appendChild(el('p', {
+      class: 'hint',
+      text: `るすの あいだ（${off.days ? txt + '＋α' : txt}）に ゲルぴよたちが あつめて くれました。`,
+    }));
+    if (row.children.length) body.appendChild(row);
+    if (off.days) {
+      body.appendChild(el('div', { class: 'panel', style: 'background:#FFF3D0;margin-bottom:0' }, [
+        el('div', { class: 'panel-title', text: `📅 ながい るすで 日づけが ${off.days}日 すすんだ` }),
+        el('p', {
+          class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
+          text: `DAY ${off.dayFrom} → DAY ${off.dayTo}。まいにちの しゅうかくは うけとりずみ。` +
+            'ライバルたちも うごいたみたい（こうえん日記を チェック）。',
+        }),
+      ]));
+      const stolen = off.stolen || [];
+      if (stolen.length) {
+        const names = stolen.slice(0, 3)
+          .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}`)
+          .join('、');
+        body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
+          el('div', { class: 'panel-title', text: `⚠ るす中に 区画を ${stolen.length}こ のっとられた！` }),
+          el('p', {
+            class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
+            text: names + (stolen.length > 3 ? ' など。' : '。') +
+              ' まもりの よわい マスから ねらわれます。とりかえそう！',
+          }),
+        ]));
+      }
+    }
     UI.modal({
       title: '🏡 おかえりなさい！',
-      body: el('div', {}, [
-        el('p', { class: 'hint', text: `るすの あいだ（${txt}）に ゲルぴよたちが あつめて くれました。` }),
-        row,
-      ]),
+      body,
       buttons: [{ label: 'うけとる', cls: 'btn-accent' }],
-      onClose: () => { UI.refreshHud(); UI.rerender(); },
+      onClose: () => {
+        UI.refreshHud(); UI.rerender();
+        if (after) setTimeout(after, 120);
+      },
     });
   }
 
@@ -6294,7 +6441,7 @@ window.GP = window.GP || {};
       'あきちを タップして ゆうぐを たてる。ゆうぐが ざいりょうを うみ、ごきげん度も あがる。',
       'ごきげん度が たかいほど せいさんも せんとうりょくも アップ。ひくいと だだっこストライキ！',
       '「つぎの日へ」で しゅうかく＋ライバルの こうどう。1日 1回 すすむ。',
-      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。',
+      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 1日 1こ のっとられます（さいごの 1マスは あんぜん）。',
     ]);
     sec('🗺 なわばり', [
       'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき ⚡を 1 つかう。',

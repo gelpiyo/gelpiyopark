@@ -281,7 +281,7 @@ window.GP = window.GP || {};
     { id: 't12', q: -1, r:  2, name: 'ひなたの えんがわ',  ter: 'sunaba',  owner: 'cat',    def: 4 },
     { id: 't13', q: -2, r:  2, name: 'ねこじゃらし小道',   ter: 'kodachi', owner: 'cat',    def: 5 },
     { id: 't14', q: -2, r:  1, name: 'かくれんぼ横丁',     ter: 'kodachi', owner: 'none',   def: 3 },
-    { id: 't15', q: -2, r:  0, name: 'だがしや通り',       ter: 'hiroba',  owner: 'none',   def: 3 },
+    { id: 't15', q: -2, r:  0, name: 'だがしや通り',       ter: 'hiroba',  owner: 'red',    def: 4 },
     { id: 't16', q:  1, r: -2, name: 'まつぼっくりの森',   ter: 'kodachi', owner: 'none',   def: 3 },
     { id: 't17', q:  0, r: -2, name: 'ゆうひ台',           ter: 'oka',     owner: 'red',    def: 5 },
     { id: 't18', q: -1, r: -1, name: 'あかぴよ ひみつ基地', ter: 'sunaba', owner: 'red',    def: 6 },

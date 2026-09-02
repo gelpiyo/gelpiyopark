@@ -33,6 +33,7 @@ window.GP = window.GP || {};
       tiles: {},
       factions: {},
       freeScoutDay: 0,
+      pendingScout: null,   // かくてい前の スカウト結果（とじても きえないように）
       log: [],
       stats: { battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 },
       lastSeen: Date.now(),
@@ -365,6 +366,7 @@ window.GP = window.GP || {};
      ========================================================= */
   function nextDay(opts) {
     const st = S.data;
+    const noPlayerAttack = !!(opts && opts.noPlayerAttack);
     const rng = U.makeRng((st.seed + st.day * 7919) >>> 0);
     const rep = {
       day: st.day, income: {}, event: null, kigenBefore: st.kigen,
@@ -411,7 +413,7 @@ window.GP = window.GP || {};
     });
 
     // --- ライバル AI ---
-    runAI(rng, rep);
+    runAI(rng, rep, noPlayerAttack);
 
     // --- 日づけ ---
     st.day += 1;
@@ -430,7 +432,7 @@ window.GP = window.GP || {};
   }
 
   /* ---------- ライバル AI ---------- */
-  function runAI(rng, rep) {
+  function runAI(rng, rep, noPlayerAttack) {
     const st = S.data;
     const order = rng.shuffle(D.RIVALS.slice());
     let playerAttacked = false;
@@ -456,7 +458,7 @@ window.GP = window.GP || {};
         tileNeighborIds(id).forEach((nid) => {
           const o = st.tiles[nid].owner;
           if (o === fid) return;
-          if (o === 'player' && (fs.pact > 0 || playerAttacked)) return;
+          if (o === 'player' && (noPlayerAttack || fs.pact > 0 || playerAttacked)) return;
           let w = 10;
           if (o === 'none') w = 16;
           else if (o === 'player') w = 12 + Math.max(0, 6 - tileDefense(nid));
@@ -528,6 +530,8 @@ window.GP = window.GP || {};
     const hours = (now - (st.lastSeen || now)) / 3600000;
     st.lastSeen = now;
     if (hours < 0.05) return null;
+
+    // さいしょの 8時間ぶんは 放置生産として しかく回収
     const h = Math.min(hours, R.offlineCapH);
     const inc = income();
     const out = {};
@@ -536,9 +540,51 @@ window.GP = window.GP || {};
       const v = Math.floor(inc[k] * h * R.offlineRate);
       if (v > 0) { out[k] = v; any = true; }
     }
-    if (!any) return null;
-    gain(out);
-    return { hours: h, gained: out };
+    if (any) gain(out);
+
+    // 8時間を こえた ぶんは「8時間 = 1日」で 日づけを すすめる（超過÷8 切り捨て）
+    // 防衛バトルは はさめないので ランダムな しゅうげきは 起きないが、
+    // 1日ごとに「まもりが いちばん ひくい マス」を いちばん よわい 勢力に のっとられる
+    let days = 0;
+    const stolen = [];
+    const dayFrom = st.day;
+    if (hours > R.offlineCapH && !st.ended) {
+      const want = Math.floor((hours - R.offlineCapH) / R.offlineCapH);
+      while (days < want && days < 90 && !st.ended) {
+        nextDay({ noPlayerAttack: true });
+        days++;
+        const hit = offlineSteal();
+        if (hit) stolen.push(hit);
+      }
+      st.lastSeen = now;               // nextDay が 上書きするので もどす
+    }
+
+    if (!any && !days) return null;
+    return { hours: h, gained: out, days, dayFrom, dayTo: st.day, stolen };
+  }
+
+  /** るす中の のっとり：まもり最小の 自マスを、区画数が いちばん すくない 勢力へ */
+  function offlineSteal() {
+    const st = S.data;
+    const mine = ownedTileIds();
+    if (mine.length <= 1) return null;           // さいごの 1マスまでは うばわれない
+    let tid = mine[0];
+    mine.forEach((id) => { if (tileDefense(id) < tileDefense(tid)) tid = id; });
+    const sh = shares();
+    const alive = D.RIVALS.filter((f) => sh[f] > 0);
+    if (!alive.length) return null;
+    alive.sort((a, b) =>
+      sh[a] - sh[b] || (D.FACTIONS[a].power || 1) - (D.FACTIONS[b].power || 1));
+    const fac = alive[0];
+    const t = tileById(tid);
+    st.tiles[tid].owner = fac;
+    st.tiles[tid].days = 0;
+    st.tiles[tid].def = Math.max(2, Math.round(t.def * 0.8));
+    st.stats.lost += 1;
+    st.kigenMod -= 6;
+    st.kigen = U.clamp(Math.round(kigenTarget() + st.kigenMod), 0, 100);
+    log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」を のっとった…`, 'bad');
+    return { tile: tid, name: t.name, fac };
   }
 
   /* =========================================================
@@ -590,6 +636,7 @@ window.GP = window.GP || {};
     d.stats = Object.assign({ battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 }, d.stats);
     d.seen = d.seen || {};
     d.equips = d.equips || {};
+    d.pendingScout = Array.isArray(d.pendingScout) ? d.pendingScout : null;
     S.data = d;
     return d;
   }

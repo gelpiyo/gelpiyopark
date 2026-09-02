@@ -81,19 +81,31 @@ window.GP = window.GP || {};
     // ここでは まだ なかまに くわえない。
     // けっか画面で「なかまに する／にがす」を えらんでから かくてい する。
     const rng = U.rnd;
-    const results = [];
+    const records = [];
     const batchSeen = new Set();
     for (let i = 0; i < count; i++) {
       const sp = rollOne(rng, guaranteeR && i === count - 1);
-      results.push({ sp, isNew: !st.seen[sp.id] && !batchSeen.has(sp.id), marked: false });
+      records.push({ sp: sp.id, isNew: !st.seen[sp.id] && !batchSeen.has(sp.id), marked: false });
       batchSeen.add(sp.id);
     }
     st.stats.scouts += count;
+    // かくてい前に とじても ひかない ぶんが きえないよう、けっかを 先に ほぞん
+    st.pendingScout = records;
     St.persist();
     rolling = false;
     UI.refreshHud();
     render();
-    showResults(results);
+    showResults(records);
+  }
+
+  /** 再開時：かくてい前の スカウト結果が のこっていたら モーダルを ふくげんする */
+  function resumePending(after) {
+    const st = St.st;
+    if (!st || !st.pendingScout || !st.pendingScout.length) {
+      if (after) after();
+      return;
+    }
+    showResults(st.pendingScout, after, true);
   }
 
   /** 種族を なかまに くわえる（あふれ / かぶり の しょり こみ） */
@@ -123,9 +135,19 @@ window.GP = window.GP || {};
   /* =========================================================
      けっか — 「なかまに する」か「にがす」を えらんで かくてい
      ========================================================= */
-  function showResults(results) {
+  function showResults(records, after, resumed) {
     const st = St.st;
-    const multi = results.length > 1;
+    // ほぞん形式（種族ID）から 表示用に ひく。しらない IDは とばす（将来の互換）
+    const items = records
+      .map((rec) => ({ rec, sp: D.SPECIES_BY_ID[rec.sp] }))
+      .filter((x) => x.sp);
+    if (!items.length) {
+      st.pendingScout = null;
+      St.persist();
+      if (after) after();
+      return;
+    }
+    const multi = items.length > 1;
     let decided = false;
 
     /** mode: 'keep' = にがすマークの ない子を なかまに ／ 'release' = ぜんいん にがす */
@@ -133,17 +155,18 @@ window.GP = window.GP || {};
       if (decided) return;
       decided = true;
       let kept = 0, gotKakera = 0;
-      results.forEach((r) => {
-        if (mode === 'release' || r.marked) {
-          const k = D.RULES.dupKakera[r.sp.rar];
+      items.forEach(({ rec, sp }) => {
+        if (mode === 'release' || rec.marked) {
+          const k = D.RULES.dupKakera[sp.rar];
           st.res.kakera += k;
           gotKakera += k;
           return;
         }
-        const out = addSpecies(r.sp);              // 上限・かぶりの じどう変換は ここで
+        const out = addSpecies(sp);              // 上限・かぶりの じどう変換は ここで
         if (out.kind === 'unit') kept += 1;
         else gotKakera += out.kakera;
       });
+      st.pendingScout = null;                    // かくてい したので ほぞんを けす
       St.persist();
       UI.refreshHud();
       if (kept) UI.toast(`なかまが ${kept}ぴよ ふえた！` + (gotKakera ? `　🧩+${gotKakera}` : ''), 'good');
@@ -151,34 +174,42 @@ window.GP = window.GP || {};
     };
 
     const body = el('div');
+    if (resumed) {
+      body.appendChild(el('p', {
+        class: 'hint',
+        style: 'margin-top:0',
+        text: 'とじる まえの スカウトけっかを ふくげん しました。',
+      }));
+    }
     const grid = el('div', { class: 'result-grid' });
 
-    results.forEach((r, i) => {
-      const rar = D.RARITY[r.sp.rar];
+    items.forEach(({ rec, sp }, i) => {
+      const rar = D.RARITY[sp.rar];
       const cell = el(multi ? 'button' : 'div', {
-        class: 'result-cell' + (r.isNew ? ' is-new' : ''),
+        class: 'result-cell' + (rec.isNew ? ' is-new' : '') + (rec.marked ? ' is-release' : ''),
         type: multi ? 'button' : null,
         style: 'animation-delay:' + (i * 70) + 'ms',
       });
       cell.innerHTML = GP.piyo.svg({
-        hue: r.sp.hue, sat: r.sp.sat, lit: r.sp.lit,
-        kind: r.sp.kind || 'piyo', acc: r.sp.acc ? [r.sp.acc] : [], mood: 'happy',
+        hue: sp.hue, sat: sp.sat, lit: sp.lit,
+        kind: sp.kind || 'piyo', acc: sp.acc ? [sp.acc] : [], mood: 'happy',
       });
       cell.appendChild(el('div', { class: 'rn', style: 'color:' + rar.color, text: rar.name }));
-      cell.appendChild(el('div', { class: 'rn', text: r.sp.name }));
-      if (r.isNew) cell.appendChild(el('span', { class: 'newtag', text: 'NEW' }));
+      cell.appendChild(el('div', { class: 'rn', text: sp.name }));
+      if (rec.isNew) cell.appendChild(el('span', { class: 'newtag', text: 'NEW' }));
       cell.appendChild(el('span', { class: 'reltag', text: 'にがす' }));
       if (multi) {
         cell.addEventListener('click', () => {
-          r.marked = !r.marked;
-          cell.classList.toggle('is-release', r.marked);
+          rec.marked = !rec.marked;
+          cell.classList.toggle('is-release', rec.marked);
+          St.persist();                          // マークも ほぞん（再開時に ひきつぐ）
         });
       }
       grid.appendChild(cell);
     });
     body.appendChild(grid);
 
-    const news = results.filter((r) => r.isNew).length;
+    const news = items.filter((x) => x.rec.isNew).length;
     if (news) body.appendChild(el('p', { class: 'hint', text: `あたらしい なかま ${news} しゅるい！` }));
     if (multi) {
       body.appendChild(el('p', {
@@ -193,8 +224,8 @@ window.GP = window.GP || {};
         'なかまが いっぱいの ときや おなじ子が 3びき いるときも かけらに なります。',
     }));
 
-    const best = results.reduce((a, r) =>
-      D.RARITY[r.sp.rar].star > D.RARITY[a.sp.rar].star ? r : a, results[0]);
+    const best = items.reduce((a, x) =>
+      D.RARITY[x.sp.rar].star > D.RARITY[a.sp.rar].star ? x : a, items[0]);
     const title = D.RARITY[best.sp.rar].star === 3 ? '✨ SR が でた！' : 'スカウト けっか';
 
     UI.modal({
@@ -204,7 +235,11 @@ window.GP = window.GP || {};
         { label: 'なかまに する', cls: 'btn-accent', onClick: () => commit('keep') },
       ],
       // ✕や 背景タップで とじたときは「なかまに する」あつかい（まちがって きえないように）
-      onClose: () => { commit('keep'); UI.rerender(); },
+      onClose: () => {
+        commit('keep');
+        UI.rerender();
+        if (after) setTimeout(after, 150);
+      },
     });
   }
 
@@ -225,5 +260,5 @@ window.GP = window.GP || {};
     UI.register('gacha', { render });
   }
 
-  GP.gacha = { init, render, addSpecies };
+  GP.gacha = { init, render, addSpecies, resumePending };
 })(window.GP);

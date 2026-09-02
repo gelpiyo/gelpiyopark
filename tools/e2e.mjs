@@ -177,6 +177,33 @@ await step('ぜんぶ にがす（10れん）', `(()=>{const st=GP.state.st;cons
   const ok = st.units.length===u0 && st.res.kakera>k0;
   return (ok?'OK ':'NG ')+u0+'ぴよのまま / 🧩'+k0+'→'+st.res.kakera;})()`, 700);
 
+/* ---------- 長期るすの 日送り ---------- */
+await step('長期るす（30時間）：日送り＋のっとり', `(()=>{
+  const st=GP.state.st; const d0=st.day; const p0=GP.state.shares().player;
+  st.lastSeen=Date.now()-30*3600*1000;
+  const off=GP.state.applyOffline();
+  const expSteal=Math.min(2, Math.max(0, p0-1));
+  const ok = off && off.days===2 && st.day===d0+2 &&
+    off.stolen.length===expSteal && GP.state.shares().player===p0-expSteal;
+  return (ok?'OK ':'NG ')+'DAY '+d0+'→'+st.day+'／自区画 '+p0+'→'+GP.state.shares().player+
+    '（のっとり'+(off?off.stolen.length:'-')+'）';})()`, 500);
+
+/* ---------- かくてい前スカウトの ほぞん→ふくげん ---------- */
+await step('かくてい前スカウトの ふくげん', `(()=>{
+  const st=GP.state.st;
+  st.pendingScout=[{sp:'kopiyo',isNew:false,marked:false},{sp:'gaki',isNew:false,marked:true}];
+  GP.state.persist();
+  if(!(GP.state.restore() && GP.state.st.pendingScout.length===2)) return 'NG 保存往復';
+  GP.gacha.resumePending();
+  const cells=document.querySelectorAll('.result-cell').length;
+  const marked=document.querySelectorAll('.result-cell.is-release').length;
+  const u0=GP.state.st.units.length, k0=GP.state.st.res.kakera;
+  const b=[...document.querySelectorAll('#modal-foot .btn')].find(x=>/なかまに する/.test(x.textContent));
+  b.click();
+  const st2=GP.state.st;
+  const ok = cells===2 && marked===1 && st2.pendingScout===null && st2.res.kakera>k0;
+  return (ok?'OK ':'NG ')+'cells='+cells+' marked='+marked+' units '+u0+'→'+st2.units.length+' 🧩'+k0+'→'+st2.res.kakera;})()`, 700);
+
 /* ---------- SVG id の 重複チェック（からだが 消えるバグの 再発防止） ----------
    ぴよの からだは fill="url(#bd…)" で <defs> を さんしょうしている。
    おなじ id が 画面に 2つ あると、さきに DOM から けされた ほうを
