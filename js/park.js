@@ -40,7 +40,7 @@ window.GP = window.GP || {};
     renderLog();
 
     const sub = $('#nextday-sub');
-    const left = D.RULES.dayLimit - st.day + 1;
+    const left = St.dayLimitNow() - st.day + 1;
     sub.textContent = `せいさん回収＋ライバル行動　のこり ${Math.max(0, left)}日`;
   }
 

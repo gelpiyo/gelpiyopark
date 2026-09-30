@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#7FD4E8" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="description" content="ゲルぴよ公園大作戦 ～ぴよ達の遊び場争奪戦～ / スマホWebブラウザ向け 遊び場開拓・縄張り争いシミュレーション" />
+<meta name="description" content="ゲルぴよ公園大作戦 ～ぴよ達の遊び場争奪戦～ / 遊び場開拓・縄張り争いシミュレーション" />
 <title>ゲルぴよ公園大作戦</title>
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="assets/icon.svg" />
@@ -540,7 +540,7 @@ canvas.piyo3d{display:block;margin:0 auto}
       <button id="btn-newgame" class="btn btn-accent btn-lg" type="button">あたらしく はじめる</button>
       <button id="btn-howto" class="btn btn-ghost" type="button">あそびかた</button>
     </div>
-    <p class="title-note">スマホ縦画面むけ／インストール不要</p>
+    <p class="title-note">Ver 0.2 ⓒ Taica Corporation</p>
   </div>
 </div>
 
@@ -1227,7 +1227,9 @@ window.GP = window.GP || {};
     plotsBase:   6,        // 最初から ひらけている 区画数
     plotsTotal:  16,       // 4 x 4
     plotPerTile: 1,        // 縄張り1つ ごとに ひらける 数
-    dayLimit:    40,       // このターンまでに いちばん おおくの 区画を
+    dayLimit:    10,       // このターンまでに いちばん おおくの 区画を
+    wipeBonus:   10,       // ライバル 1勢力を はじめて ぜんめつ させた ときに のびる 日数
+    wipeBonusAgain: 5,     // ふっかつ した あいてを ふたたび ぜんめつ させた ときの 日数
     gachaCost1:  5,
     gachaCost10: 45,
     dupKakera:   { N: 4, R: 12, SR: 40 },
@@ -1237,7 +1239,7 @@ window.GP = window.GP || {};
     lvMax:       25,
     strikeAt:    26,       // これ未満で だだっこストライキ
     offlineCapH: 8,        // 放置ボーナスの じょうげん（時間）
-    offlineRate: 0.42,     // 放置中は 1日ぶんの何%か（1時間 = 1日 あつかい）
+    offlineRate: 0.5,     // 放置中は 1日ぶんの何%か（1時間 = 1日 あつかい）
   };
 
   GP.data = {
@@ -2412,6 +2414,9 @@ window.GP = window.GP || {};
       stats: { battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 },
       lastSeen: Date.now(),
       ended: null,
+      dayBonus: 0,          // ライバル ぜんめつ ボーナスで のびた 日数
+      wiped: {},            // ぜんめつ ずみの ライバル（ふっかつ したら おりる）
+      wipedOnce: {},        // 1度でも じぶんで たおした ライバル（2回目からは +wipeBonusAgain）
       seen: {},
     };
 
@@ -2698,6 +2703,51 @@ window.GP = window.GP || {};
     return out;
   }
 
+  /** いまの タイムリミット（ライバル ぜんめつ ボーナス こみ） */
+  function dayLimitNow() { return R.dayLimit + (S.data.dayBonus || 0); }
+
+  /**
+   * ライバル勢力の ぜんめつ はんてい。
+   * 所有が かわりうる ところ すべてから よぶ（せめこみ・がいこう・AI・るす中）。
+   *
+   * byPlayer = true（プレイヤーの こうどうで 所有が かわった とき）の ときだけ
+   * タイムリミットを のばす。ライバル同士の つぶし合い・るす中の のっとりでは
+   * フラグの こうしんだけ して ボーナスは あげない。
+   * ふっかつ（区画が もどった）ら フラグを おろすので、じぶんで ぜんめつ させる たびに もらえる。
+   * ただし 2回目からは +R.wipeBonusAgain（はじめては +R.wipeBonus）。
+   *
+   * もどり値: [{ fac, bonus, again }]
+   */
+  function checkWipe(byPlayer) {
+    const st = S.data;
+    if (!st.wiped) st.wiped = {};
+    if (!st.wipedOnce) st.wipedOnce = {};
+    const sh = shares();
+    const out = [];
+    D.RIVALS.forEach((f) => {
+      const zero = sh[f] === 0;
+      if (zero && !st.wiped[f]) {
+        st.wiped[f] = true;
+        if (byPlayer) {
+          const again = !!st.wipedOnce[f];
+          const bonus = again ? R.wipeBonusAgain : R.wipeBonus;
+          st.wipedOnce[f] = true;
+          st.dayBonus = (st.dayBonus || 0) + bonus;
+          out.push({ fac: f, bonus, again });
+          log(again
+            ? `${D.FACTIONS[f].name}を ふたたび ぜんめつ させた！ タイムリミット +${bonus}日`
+            : `${D.FACTIONS[f].name}を ぜんめつ させた！ タイムリミット +${bonus}日`, 'good');
+        } else {
+          // ライバル同士の つぶし合いなど → ボーナスなし
+          log(`${D.FACTIONS[f].name}は こうえんから すがたを けした。`, 'none');
+        }
+      } else if (!zero && st.wiped[f]) {
+        st.wiped[f] = false;
+      }
+    });
+    return out;
+  }
+
   /** 区画の じっしつ ぼうぎょりょく */
   function tileDefense(id) {
     const st = S.data;
@@ -2788,6 +2838,7 @@ window.GP = window.GP || {};
 
     // --- ライバル AI ---
     runAI(rng, rep, noPlayerAttack);
+    checkWipe(false);              // AI 同士の つぶし合いは ボーナスの たいしょう外
 
     // --- 日づけ ---
     st.day += 1;
@@ -2885,7 +2936,7 @@ window.GP = window.GP || {};
       st.ended = 'win';
       return;
     }
-    if (st.day > R.dayLimit) {
+    if (st.day > dayLimitNow()) {
       let best = 'player', bestN = -1;
       Object.keys(sh).forEach((k) => {
         if (k === 'none') return;
@@ -2920,6 +2971,7 @@ window.GP = window.GP || {};
     // 防衛バトルは はさめないので ランダムな しゅうげきは 起きないが、
     // 1日ごとに「まもりが いちばん ひくい マス」を いちばん よわい 勢力に のっとられる
     let days = 0;
+    let revoked = false;              // るす中に ぜん制圧の かちが くつがえったか
     const stolen = [];
     const dayFrom = st.day;
     if (hours > R.offlineCapH && !st.ended) {
@@ -2927,17 +2979,26 @@ window.GP = window.GP || {};
       while (days < want && days < 90 && !st.ended) {
         nextDay({ noPlayerAttack: true });
         days++;
-        const hit = offlineSteal();
+        const hit = offlineSteal();    // けっちゃく した 日でも のっとられる
         if (hit) stolen.push(hit);
+        checkWipe(false);              // ふっかつ したら また ねらえる ように（ボーナスなし）
+        // ぜん制圧の かちは、るす中に 1マス とられた じてんで くつがえる。
+        // （時間ぎれの けっちゃくは そのまま。日づけは もう もどせない ため）
+        if (st.ended === 'win' && st.day <= dayLimitNow() && shares().player < D.TILES.length) {
+          st.ended = null;
+          revoked = true;
+          log('るすの あいだに なわばりを とりかえされ、しょうりが くつがえった…', 'bad');
+        }
       }
       st.lastSeen = now;               // nextDay が 上書きするので もどす
     }
 
     if (!any && !days) return null;
-    return { hours: h, gained: out, days, dayFrom, dayTo: st.day, stolen };
+    return { hours: h, gained: out, days, dayFrom, dayTo: st.day, stolen, revoked };
   }
 
-  /** るす中の のっとり：まもり最小の 自マスを、区画数が いちばん すくない 勢力へ */
+  /** るす中の のっとり：まもり最小の 自マスを、区画数が いちばん すくない 勢力へ
+   *  ぜんめつ（区画 0）の 勢力も ふくめる → 区画 0 が いちばん すくないので さいゆうせんで 敗者復活する */
   function offlineSteal() {
     const st = S.data;
     const mine = ownedTileIds();
@@ -2945,11 +3006,11 @@ window.GP = window.GP || {};
     let tid = mine[0];
     mine.forEach((id) => { if (tileDefense(id) < tileDefense(tid)) tid = id; });
     const sh = shares();
-    const alive = D.RIVALS.filter((f) => sh[f] > 0);
-    if (!alive.length) return null;
-    alive.sort((a, b) =>
+    const cands = D.RIVALS.slice();             // ぜんめつ勢力も ふくめる
+    cands.sort((a, b) =>
       sh[a] - sh[b] || (D.FACTIONS[a].power || 1) - (D.FACTIONS[b].power || 1));
-    const fac = alive[0];
+    const fac = cands[0];
+    const revived = sh[fac] === 0;
     const t = tileById(tid);
     st.tiles[tid].owner = fac;
     st.tiles[tid].days = 0;
@@ -2957,8 +3018,9 @@ window.GP = window.GP || {};
     st.stats.lost += 1;
     st.kigenMod -= 6;
     st.kigen = U.clamp(Math.round(kigenTarget() + st.kigenMod), 0, 100);
-    log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」を のっとった…`, 'bad');
-    return { tile: tid, name: t.name, fac };
+    if (revived) log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」で ふっかつした！`, 'bad');
+    else log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」を のっとった…`, 'bad');
+    return { tile: tid, name: t.name, fac, revived };
   }
 
   /* =========================================================
@@ -3011,6 +3073,15 @@ window.GP = window.GP || {};
     d.seen = d.seen || {};
     d.equips = d.equips || {};
     d.pendingScout = Array.isArray(d.pendingScout) ? d.pendingScout : null;
+    d.dayBonus = d.dayBonus || 0;
+    d.wiped = d.wiped || {};
+    // ぜん制圧の かちは 区画が そろって いる ことが じょうけん。
+    // るす中に とりかえされた セーブ（旧バージョンの ものを ふくむ）は つづきに もどす
+    if (d.ended === 'win' && d.day <= R.dayLimit + (d.dayBonus || 0)) {
+      let owned = 0;
+      Object.keys(d.tiles || {}).forEach((id) => { if (d.tiles[id].owner === 'player') owned += 1; });
+      if (owned < D.TILES.length) d.ended = null;
+    }
     S.data = d;
     return d;
   }
@@ -3025,6 +3096,7 @@ window.GP = window.GP || {};
     canPay, pay, gain, lackList, log,
     addEquip, equipFree, setEquip, unitById, teamUnits, teamPower, alertNeighbors,
     tileById, tileNeighborIds, attackableIds, shares, tileDefense, enemyPower,
+    dayLimitNow, checkWipe,
     nextDay, applyOffline,
   };
 })(window.GP);
@@ -3890,7 +3962,7 @@ window.GP = window.GP || {};
     renderLog();
 
     const sub = $('#nextday-sub');
-    const left = D.RULES.dayLimit - st.day + 1;
+    const left = St.dayLimitNow() - st.day + 1;
     sub.textContent = `せいさん回収＋ライバル行動　のこり ${Math.max(0, left)}日`;
   }
 
@@ -5971,6 +6043,7 @@ window.GP = window.GP || {};
         St.log(alerted.join('と') + 'が けいかいして まもりを かためた。', 'bad');
       }
       giveRewards(sim, t, true);
+      wipeToast(St.checkWipe(true));
     } else {
       st.kigenMod -= 8;
       St.log(`「${t.name}」の せめこみに しっぱい…`, 'bad');
@@ -5980,6 +6053,14 @@ window.GP = window.GP || {};
     St.persist();
     UI.refreshHud();
     render();
+  }
+
+  /** ぜんめつ させた ときの おしらせ（+日数） */
+  function wipeToast(wiped) {
+    if (!wiped || !wiped.length) return;
+    const names = wiped.map((w) => D.FACTIONS[w.fac].name).join('と');
+    let sum = 0; wiped.forEach((w) => { sum += w.bonus; });
+    UI.toast(`${names}を ぜんめつ！ のこり日数 +${sum}日`, 'good');
   }
 
   /* =========================================================
@@ -6223,6 +6304,7 @@ window.GP = window.GP || {};
         st.stats.captured += 1;
         St.log(f.name + 'が「' + St.tileById(id).name + '」を ゆずって くれた！', 'good');
         UI.toast('区画を ゆずって もらった！', 'good');
+        wipeToast(St.checkWipe(true));
       },
     }));
     body.appendChild(acts);
@@ -6394,10 +6476,20 @@ window.GP = window.GP || {};
             'ライバルたちも うごいたみたい（こうえん日記を チェック）。',
         }),
       ]));
+      if (off.revoked) {
+        body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
+          el('div', { class: 'panel-title', text: '😱 しょうりが くつがえった！' }),
+          el('p', {
+            class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
+            text: 'ぜんぶの 区画を せいあつ して いたのに、るす中に とりかえされて しまいました。'
+              + 'もう一度 ぜんぶ とりもどそう！',
+          }),
+        ]));
+      }
       const stolen = off.stolen || [];
       if (stolen.length) {
         const names = stolen.slice(0, 3)
-          .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}`)
+          .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}${x.revived ? '（ふっかつ！）' : ''}`)
           .join('、');
         body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
           el('div', { class: 'panel-title', text: `⚠ るす中に 区画を ${stolen.length}こ のっとられた！` }),
@@ -6441,7 +6533,7 @@ window.GP = window.GP || {};
       'あきちを タップして ゆうぐを たてる。ゆうぐが ざいりょうを うみ、ごきげん度も あがる。',
       'ごきげん度が たかいほど せいさんも せんとうりょくも アップ。ひくいと だだっこストライキ！',
       '「つぎの日へ」で しゅうかく＋ライバルの こうどう。1日 1回 すすむ。',
-      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 1日 1こ のっとられます（さいごの 1マスは あんぜん）。',
+      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 区画が いちばん すくない 勢力に 1日 1こ のっとられます（ぜんめつした 勢力は ここで ふっかつ／さいごの 1マスは あんぜん）。',
     ]);
     sec('🗺 なわばり', [
       'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき ⚡を 1 つかう。',
@@ -6457,6 +6549,8 @@ window.GP = window.GP || {};
     sec('🏁 しょうり じょうけん', [
       'すべての 区画を せいあつ すれば しょうり。',
       `DAY ${D.RULES.dayLimit} までに いちばん おおくの 区画を もっていても しょうり。`,
+      `あかぴよ団・カラス組・ネコ軍団の どれかを じぶんで ぜんめつ させる ごとに タイムリミットが +${D.RULES.wipeBonus}日！`,
+      `ながい るすの あいだに あいては ふっかつ する。たおしなおすと +${D.RULES.wipeBonusAgain}日（ぜん制圧の かちも とりかえされると くつがえる）。`,
       'ぜんぶ とられると まけ。',
     ]);
     UI.modal({ title: 'あそびかた', body, buttons: [{ label: 'わかった！', cls: 'btn-primary' }] });
@@ -6471,7 +6565,8 @@ window.GP = window.GP || {};
     const s = st.stats;
     const sh = St.shares();
     [
-      ['いま の 日づけ', 'DAY ' + st.day + ' / ' + D.RULES.dayLimit],
+      ['いま の 日づけ', 'DAY ' + st.day + ' / ' + St.dayLimitNow()
+        + (st.dayBonus ? '（ぜんめつ ボーナス +' + st.dayBonus + '日）' : '')],
       ['なわばり', sh.player + ' / ' + D.TILES.length + ' 区画'],
       ['なかま', st.units.length + ' ぴよ'],
       ['バトル', s.battles + ' かい（' + s.wins + ' しょう）'],
@@ -6562,7 +6657,7 @@ window.GP = window.GP || {};
         ? `DAY ${st.day - 1} までに ${sh.player} 区画を てにいれて、こうえん いちばんの グループに なりました！`
         : st.ended === 'lose'
           ? 'なわばりを ぜんぶ とられて しまいました…。つぎは ゆうぐを たてて ごきげん度を たかく たもとう。'
-          : `DAY ${D.RULES.dayLimit} が すぎました。あなたの 区画は ${sh.player} でした。`,
+          : `DAY ${St.dayLimitNow()} が すぎました。あなたの 区画は ${sh.player} でした。`,
     }));
 
     const s = st.stats;

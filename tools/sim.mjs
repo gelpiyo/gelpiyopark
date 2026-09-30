@@ -136,6 +136,101 @@ function unitTests(GP) {
   ok(St.shares().player === p0 - 2, '自区画が 2 へる');
   ok(off3.stolen.every((x) => D.RIVALS.indexOf(x.fac) >= 0), 'のっとりさきは ライバル勢力');
 
+  // ぜんめつ勢力の 敗者復活：区画 0 の 勢力が いれば さいゆうせんで のっとる
+  Object.keys(st.tiles).forEach((id) => { if (st.tiles[id].owner === 'crow') st.tiles[id].owner = 'cat'; });
+  st.tiles.t15.owner = 'red';                    // ほかの 勢力は 1マス以上 もたせる（crow だけ 0）
+  st.tiles.t11.owner = 'cat';
+  st.tiles.t02.owner = 'player'; st.tiles.t02.def = 1;
+  st.lastSeen = Date.now() - 3600 * 1000 * 16;   // +1日 → 1マス
+  const off4 = St.applyOffline();
+  ok(off4.stolen.length === 1 && off4.stolen[0].fac === 'crow' && off4.stolen[0].revived === true,
+    'ぜんめつした 勢力が ふっかつする（実際 ' + (off4.stolen[0] && off4.stolen[0].fac) + '）');
+  ok(St.shares().crow === 1, 'ふっかつ勢力の 区画が 1 に なる');
+
+  // ぜんめつ ボーナス：ライバル 1勢力を けすと タイムリミットが のびる
+  const wipeAll = (fid) => {
+    Object.keys(st.tiles).forEach((id) => { if (st.tiles[id].owner === fid) st.tiles[id].owner = 'player'; });
+  };
+  const lim0 = St.dayLimitNow();
+  wipeAll('red');
+  const w1 = St.checkWipe(true);
+  ok(w1.length === 1 && w1[0].fac === 'red' && w1[0].again === false, 'あかぴよ団の ぜんめつを けんち');
+  ok(St.dayLimitNow() === lim0 + D.RULES.wipeBonus,
+    'タイムリミット +' + D.RULES.wipeBonus + '日（実際 ' + (St.dayLimitNow() - lim0) + '）');
+  ok(St.checkWipe(true).length === 0, 'おなじ ぜんめつで 2どは もらえない');
+
+  st.tiles.t15.owner = 'red';                       // ふっかつ
+  St.checkWipe(true);
+  ok(St.dayLimitNow() === lim0 + D.RULES.wipeBonus, 'ふっかつでは へらない');
+  wipeAll('red');
+  const wAgain = St.checkWipe(true);
+  ok(wAgain.length === 1 && wAgain[0].again === true && wAgain[0].bonus === D.RULES.wipeBonusAgain,
+    'ふっかつ後の さいぜんめつは +' + D.RULES.wipeBonusAgain + '日あつかい');
+  ok(St.dayLimitNow() === lim0 + D.RULES.wipeBonus + D.RULES.wipeBonusAgain,
+    '1回目 +' + D.RULES.wipeBonus + ' / 2回目 +' + D.RULES.wipeBonusAgain
+    + '（実際 +' + (St.dayLimitNow() - lim0) + '）');
+
+  // ライバル同士の つぶし合い（byPlayer なし）は ボーナスの たいしょう外
+  const limA = St.dayLimitNow();
+  Object.keys(st.tiles).forEach((id) => { if (st.tiles[id].owner === 'crow') st.tiles[id].owner = 'cat'; });
+  const w2 = St.checkWipe(false);
+  ok(w2.length === 0, 'AI 同士の ぜんめつでは ボーナスを かえさない');
+  ok(St.dayLimitNow() === limA, 'AI 同士の ぜんめつで リミットは のびない');
+  ok(St.shares().crow === 0, 'カラス組は ぜんめつ している（ぜんてい かくにん）');
+  ok(St.checkWipe(true).length === 0, 'AI に けされた 勢力は あとから ボーナス化しない');
+
+  // AI に けされた 勢力も、ふっかつ後に じぶんで たおせば ボーナス
+  st.tiles.t11.owner = 'crow';
+  St.checkWipe(false);
+  wipeAll('crow');
+  const w3 = St.checkWipe(true);
+  ok(w3.length === 1 && w3[0].fac === 'crow', 'ふっかつ後に じぶんで たおせば ボーナス');
+  ok(St.dayLimitNow() === limA + D.RULES.wipeBonus,
+    'じぶんでは はじめての ぜんめつ なので +' + D.RULES.wipeBonus + '日');
+
+  // ぜん制圧の かちは、るす中に とりかえされると くつがえる
+  const st2 = St.newGame();
+  Object.keys(st2.tiles).forEach((id) => { st2.tiles[id].owner = 'player'; });
+  St.checkWipe(true);                                // せいあつ ＝ じぶんで 3勢力を たおした
+  st2.lastSeen = Date.now() - 16 * 3600 * 1000;      // 8時間こえ → 1日 日おくり
+  const offW = St.applyOffline();
+  ok(offW.revoked === true, 'るす中に しょうりが くつがえる');
+  ok(st2.ended === null, 'かち はんていが とりけされ、つづきに もどる');
+  ok((offW.stolen || []).length === 1, 'けっちゃく した 日でも のっとられる');
+  ok(St.shares().player === D.TILES.length - 1,
+    '1マス とられる（実際 ' + St.shares().player + '/' + D.TILES.length + '）');
+  ok(D.RIVALS.some((f) => St.shares()[f] > 0), 'ぜんめつ した 勢力が ふっかつ する');
+
+  // くつがえった あと、じぶんで たおしなおすと 2回目あつかいの +wipeBonusAgain
+  const limB = St.dayLimitNow();
+  const rev = D.RIVALS.find((f) => St.shares()[f] > 0);
+  Object.keys(st2.tiles).forEach((id) => { if (st2.tiles[id].owner === rev) st2.tiles[id].owner = 'player'; });
+  const wRe = St.checkWipe(true);
+  ok(wRe.length === 1 && wRe[0].bonus === D.RULES.wipeBonusAgain,
+    'とりかえした あとの さいぜんめつは +' + D.RULES.wipeBonusAgain + '日');
+  ok(St.dayLimitNow() === limB + D.RULES.wipeBonusAgain, 'リミットに はんえい される');
+
+  // 時間ぎれの けっちゃくは るす中でも くつがえらない
+  const st5 = St.newGame();
+  Object.keys(st5.tiles).forEach((id) => { st5.tiles[id].owner = 'player'; });
+  st5.tiles.t02.owner = 'cat';                       // ぜん制圧では ない
+  st5.day = St.dayLimitNow();                        // つぎの日で リミット ちょうか
+  st5.lastSeen = Date.now() - 16 * 3600 * 1000;
+  const offT = St.applyOffline();
+  ok(st5.ended === 'win' && offT.revoked !== true, '時間ぎれの けっちゃくは くつがえらない');
+
+  // ぜん制圧していない win が のこった セーブは つづきに もどす（すくい）
+  const st3 = St.newGame();
+  st3.ended = 'win'; st3.day = 3; st3.tiles.t02.owner = 'cat';
+  St.persist();
+  ok(St.restore().ended === null, '旧セーブの ウソの ぜん制圧を つづきに もどす');
+
+  // リミット超過の「最多区画で かち」は そのまま のこす
+  const st4 = St.newGame();
+  st4.ended = 'win'; st4.day = St.dayLimitNow() + 1; st4.tiles.t02.owner = 'cat';
+  St.persist();
+  ok(St.restore().ended === 'win', '時間ぎれの かちは すくいの たいしょう外');
+
   return fails;
 }
 
@@ -261,6 +356,7 @@ function playthrough(GP, seedBase) {
         const ter = D.TERRAIN[St.tileById(id).ter];
         Object.keys(ter.yield).forEach((k) => St.gain({ [k]: Math.round(ter.yield[k] * 3.4) }));
         St.gain({ danbo: 8, kakera: 3 });
+        St.checkWipe(true);          // じぶんで ぜんめつ させたら タイムリミット +
         sim.survivors.forEach((uid) => St.giveXp(St.unitById(uid), D.RULES.xpPerWin));
       } else {
         st.kigenMod -= 8;

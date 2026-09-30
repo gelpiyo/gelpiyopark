@@ -340,6 +340,7 @@ window.GP = window.GP || {};
         St.log(alerted.join('と') + 'が けいかいして まもりを かためた。', 'bad');
       }
       giveRewards(sim, t, true);
+      wipeToast(St.checkWipe(true));
     } else {
       st.kigenMod -= 8;
       St.log(`「${t.name}」の せめこみに しっぱい…`, 'bad');
@@ -349,6 +350,14 @@ window.GP = window.GP || {};
     St.persist();
     UI.refreshHud();
     render();
+  }
+
+  /** ぜんめつ させた ときの おしらせ（+日数） */
+  function wipeToast(wiped) {
+    if (!wiped || !wiped.length) return;
+    const names = wiped.map((w) => D.FACTIONS[w.fac].name).join('と');
+    let sum = 0; wiped.forEach((w) => { sum += w.bonus; });
+    UI.toast(`${names}を ぜんめつ！ のこり日数 +${sum}日`, 'good');
   }
 
   /* =========================================================
@@ -592,6 +601,7 @@ window.GP = window.GP || {};
         st.stats.captured += 1;
         St.log(f.name + 'が「' + St.tileById(id).name + '」を ゆずって くれた！', 'good');
         UI.toast('区画を ゆずって もらった！', 'good');
+        wipeToast(St.checkWipe(true));
       },
     }));
     body.appendChild(acts);

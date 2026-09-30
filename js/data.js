@@ -352,7 +352,9 @@ window.GP = window.GP || {};
     plotsBase:   6,        // 最初から ひらけている 区画数
     plotsTotal:  16,       // 4 x 4
     plotPerTile: 1,        // 縄張り1つ ごとに ひらける 数
-    dayLimit:    40,       // このターンまでに いちばん おおくの 区画を
+    dayLimit:    10,       // このターンまでに いちばん おおくの 区画を
+    wipeBonus:   10,       // ライバル 1勢力を はじめて ぜんめつ させた ときに のびる 日数
+    wipeBonusAgain: 5,     // ふっかつ した あいてを ふたたび ぜんめつ させた ときの 日数
     gachaCost1:  5,
     gachaCost10: 45,
     dupKakera:   { N: 4, R: 12, SR: 40 },
@@ -362,7 +364,7 @@ window.GP = window.GP || {};
     lvMax:       25,
     strikeAt:    26,       // これ未満で だだっこストライキ
     offlineCapH: 8,        // 放置ボーナスの じょうげん（時間）
-    offlineRate: 0.42,     // 放置中は 1日ぶんの何%か（1時間 = 1日 あつかい）
+    offlineRate: 0.5,     // 放置中は 1日ぶんの何%か（1時間 = 1日 あつかい）
   };
 
   GP.data = {

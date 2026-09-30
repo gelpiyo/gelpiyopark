@@ -104,10 +104,20 @@ window.GP = window.GP || {};
             'ライバルたちも うごいたみたい（こうえん日記を チェック）。',
         }),
       ]));
+      if (off.revoked) {
+        body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
+          el('div', { class: 'panel-title', text: '😱 しょうりが くつがえった！' }),
+          el('p', {
+            class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
+            text: 'ぜんぶの 区画を せいあつ して いたのに、るす中に とりかえされて しまいました。'
+              + 'もう一度 ぜんぶ とりもどそう！',
+          }),
+        ]));
+      }
       const stolen = off.stolen || [];
       if (stolen.length) {
         const names = stolen.slice(0, 3)
-          .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}`)
+          .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}${x.revived ? '（ふっかつ！）' : ''}`)
           .join('、');
         body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
           el('div', { class: 'panel-title', text: `⚠ るす中に 区画を ${stolen.length}こ のっとられた！` }),
@@ -151,7 +161,7 @@ window.GP = window.GP || {};
       'あきちを タップして ゆうぐを たてる。ゆうぐが ざいりょうを うみ、ごきげん度も あがる。',
       'ごきげん度が たかいほど せいさんも せんとうりょくも アップ。ひくいと だだっこストライキ！',
       '「つぎの日へ」で しゅうかく＋ライバルの こうどう。1日 1回 すすむ。',
-      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 1日 1こ のっとられます（さいごの 1マスは あんぜん）。',
+      'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 区画が いちばん すくない 勢力に 1日 1こ のっとられます（ぜんめつした 勢力は ここで ふっかつ／さいごの 1マスは あんぜん）。',
     ]);
     sec('🗺 なわばり', [
       'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき ⚡を 1 つかう。',
@@ -167,6 +177,8 @@ window.GP = window.GP || {};
     sec('🏁 しょうり じょうけん', [
       'すべての 区画を せいあつ すれば しょうり。',
       `DAY ${D.RULES.dayLimit} までに いちばん おおくの 区画を もっていても しょうり。`,
+      `あかぴよ団・カラス組・ネコ軍団の どれかを じぶんで ぜんめつ させる ごとに タイムリミットが +${D.RULES.wipeBonus}日！`,
+      `ながい るすの あいだに あいては ふっかつ する。たおしなおすと +${D.RULES.wipeBonusAgain}日（ぜん制圧の かちも とりかえされると くつがえる）。`,
       'ぜんぶ とられると まけ。',
     ]);
     UI.modal({ title: 'あそびかた', body, buttons: [{ label: 'わかった！', cls: 'btn-primary' }] });
@@ -181,7 +193,8 @@ window.GP = window.GP || {};
     const s = st.stats;
     const sh = St.shares();
     [
-      ['いま の 日づけ', 'DAY ' + st.day + ' / ' + D.RULES.dayLimit],
+      ['いま の 日づけ', 'DAY ' + st.day + ' / ' + St.dayLimitNow()
+        + (st.dayBonus ? '（ぜんめつ ボーナス +' + st.dayBonus + '日）' : '')],
       ['なわばり', sh.player + ' / ' + D.TILES.length + ' 区画'],
       ['なかま', st.units.length + ' ぴよ'],
       ['バトル', s.battles + ' かい（' + s.wins + ' しょう）'],
@@ -272,7 +285,7 @@ window.GP = window.GP || {};
         ? `DAY ${st.day - 1} までに ${sh.player} 区画を てにいれて、こうえん いちばんの グループに なりました！`
         : st.ended === 'lose'
           ? 'なわばりを ぜんぶ とられて しまいました…。つぎは ゆうぐを たてて ごきげん度を たかく たもとう。'
-          : `DAY ${D.RULES.dayLimit} が すぎました。あなたの 区画は ${sh.player} でした。`,
+          : `DAY ${St.dayLimitNow()} が すぎました。あなたの 区画は ${sh.player} でした。`,
     }));
 
     const s = st.stats;

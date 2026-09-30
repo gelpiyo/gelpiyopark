@@ -114,6 +114,60 @@ await step('バトル スキップ', `(()=>{const b=document.getElementById('btn
 await step('けっかを とじる', `(()=>{const b=[...document.querySelectorAll('#modal-foot .btn')][0];
   if(b) b.click(); return GP.state.shares().player + '区画';})()`, 800);
 
+/* ---------- ぜんめつ ボーナス（のこり日数 +10） ---------- */
+await step('ぜんめつで タイムリミット +10日', `(()=>{
+  const St=GP.state, D=GP.data, st=St.st;
+  // あかぴよ団を「のこり1区画」に して、こうしょうで ゆずって もらう → ぜんめつ
+  const ids=Object.keys(st.tiles).filter(id=>st.tiles[id].owner==='red');
+  ids.slice(1).forEach(id=>{ st.tiles[id].owner='none'; });
+  st.dayBonus=0; st.wiped={}; st.factions.red.fav=100;
+  const before=St.dayLimitNow();
+  GP.worldmap.openDiplomacy('red');
+  const b=[...document.querySelectorAll('.build-item:not([disabled])')]
+    .find(x=>/ゆずって/.test(x.textContent));
+  if(!b) return 'ゆずってボタンなし';
+  b.click();
+  const toast=[...document.querySelectorAll('#toast-root .toast')].map(x=>x.textContent).join('|');
+  return JSON.stringify({red:St.shares().red, before, after:St.dayLimitNow(),
+    plus:St.dayLimitNow()-before, toast:/ぜんめつ/.test(toast)});})()`);
+await step('  こうえんの のこり日数に はんえい', `(()=>{GP.ui.closeModal();
+  document.querySelector('[data-tab="park"]').click();
+  return document.querySelector('#nextday-sub').textContent;})()`);
+await step('  ふっかつ後の さいぜんめつは +5日', `(()=>{
+  const St=GP.state, st=St.st;
+  const lim=St.dayLimitNow();
+  st.tiles[Object.keys(st.tiles).find(id=>st.tiles[id].owner==='none')].owner='red';
+  St.checkWipe(false);                              // ふっかつ → フラグ おりる
+  const mid=St.dayLimitNow();
+  Object.keys(st.tiles).forEach(id=>{ if(st.tiles[id].owner==='red') st.tiles[id].owner='player'; });
+  St.checkWipe(true);                               // じぶんで さい ぜんめつ → もう一度 +10
+  return JSON.stringify({ふっかつ後:mid, さい全滅後:St.dayLimitNow(), ふえた:St.dayLimitNow()-lim});})()`);
+await step('  ぜん制圧の かちは るす中に くつがえる', `(()=>{
+  const St=GP.state, D=GP.data, st=St.st;
+  Object.keys(st.tiles).forEach(id=>{ st.tiles[id].owner='player'; });
+  St.checkWipe(true);
+  st.lastSeen = Date.now() - 16*3600*1000;          // 8時間こえ → 1日 日おくり
+  const off = St.applyOffline();
+  const sh = St.shares();
+  return JSON.stringify({revoked:off.revoked===true, ended:st.ended,
+    のっとり:(off.stolen||[]).length, 区画:sh.player+'/'+D.TILES.length,
+    ふっかつ:D.RIVALS.filter(f=>sh[f]>0).join(',')||'なし'});})()`);
+await step('  くつがえった あとの たおしなおしは +5日', `(()=>{
+  const St=GP.state, D=GP.data, st=St.st;
+  const lim=St.dayLimitNow();
+  const rev=D.RIVALS.find(f=>St.shares()[f]>0);
+  Object.keys(st.tiles).forEach(id=>{ if(st.tiles[id].owner===rev) st.tiles[id].owner='player'; });
+  const got=St.checkWipe(true);
+  return JSON.stringify({あいて:rev, again:got[0]&&got[0].again, bonus:got[0]&&got[0].bonus,
+    ふえた:St.dayLimitNow()-lim});})()`);
+await step('  ライバル同士の つぶし合いは たいしょう外', `(()=>{
+  const St=GP.state, st=St.st;
+  const lim=St.dayLimitNow();
+  // カラス組の 区画を すべて ネコ軍団に わたす（AI 同士の ぜんめつ）
+  Object.keys(st.tiles).forEach(id=>{ if(st.tiles[id].owner==='crow') st.tiles[id].owner='cat'; });
+  const got=St.checkWipe(false);
+  return JSON.stringify({crow:St.shares().crow, ボーナス:got.length, ふえた:St.dayLimitNow()-lim});})()`);
+
 /* ---------- こうしょう ---------- */
 await step('こうしょうを ひらく', `(()=>{GP.worldmap.openDiplomacy('crow');
   return document.getElementById('modal-title').textContent;})()`);

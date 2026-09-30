@@ -38,6 +38,9 @@ window.GP = window.GP || {};
       stats: { battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 },
       lastSeen: Date.now(),
       ended: null,
+      dayBonus: 0,          // ライバル ぜんめつ ボーナスで のびた 日数
+      wiped: {},            // ぜんめつ ずみの ライバル（ふっかつ したら おりる）
+      wipedOnce: {},        // 1度でも じぶんで たおした ライバル（2回目からは +wipeBonusAgain）
       seen: {},
     };
 
@@ -324,6 +327,51 @@ window.GP = window.GP || {};
     return out;
   }
 
+  /** いまの タイムリミット（ライバル ぜんめつ ボーナス こみ） */
+  function dayLimitNow() { return R.dayLimit + (S.data.dayBonus || 0); }
+
+  /**
+   * ライバル勢力の ぜんめつ はんてい。
+   * 所有が かわりうる ところ すべてから よぶ（せめこみ・がいこう・AI・るす中）。
+   *
+   * byPlayer = true（プレイヤーの こうどうで 所有が かわった とき）の ときだけ
+   * タイムリミットを のばす。ライバル同士の つぶし合い・るす中の のっとりでは
+   * フラグの こうしんだけ して ボーナスは あげない。
+   * ふっかつ（区画が もどった）ら フラグを おろすので、じぶんで ぜんめつ させる たびに もらえる。
+   * ただし 2回目からは +R.wipeBonusAgain（はじめては +R.wipeBonus）。
+   *
+   * もどり値: [{ fac, bonus, again }]
+   */
+  function checkWipe(byPlayer) {
+    const st = S.data;
+    if (!st.wiped) st.wiped = {};
+    if (!st.wipedOnce) st.wipedOnce = {};
+    const sh = shares();
+    const out = [];
+    D.RIVALS.forEach((f) => {
+      const zero = sh[f] === 0;
+      if (zero && !st.wiped[f]) {
+        st.wiped[f] = true;
+        if (byPlayer) {
+          const again = !!st.wipedOnce[f];
+          const bonus = again ? R.wipeBonusAgain : R.wipeBonus;
+          st.wipedOnce[f] = true;
+          st.dayBonus = (st.dayBonus || 0) + bonus;
+          out.push({ fac: f, bonus, again });
+          log(again
+            ? `${D.FACTIONS[f].name}を ふたたび ぜんめつ させた！ タイムリミット +${bonus}日`
+            : `${D.FACTIONS[f].name}を ぜんめつ させた！ タイムリミット +${bonus}日`, 'good');
+        } else {
+          // ライバル同士の つぶし合いなど → ボーナスなし
+          log(`${D.FACTIONS[f].name}は こうえんから すがたを けした。`, 'none');
+        }
+      } else if (!zero && st.wiped[f]) {
+        st.wiped[f] = false;
+      }
+    });
+    return out;
+  }
+
   /** 区画の じっしつ ぼうぎょりょく */
   function tileDefense(id) {
     const st = S.data;
@@ -414,6 +462,7 @@ window.GP = window.GP || {};
 
     // --- ライバル AI ---
     runAI(rng, rep, noPlayerAttack);
+    checkWipe(false);              // AI 同士の つぶし合いは ボーナスの たいしょう外
 
     // --- 日づけ ---
     st.day += 1;
@@ -511,7 +560,7 @@ window.GP = window.GP || {};
       st.ended = 'win';
       return;
     }
-    if (st.day > R.dayLimit) {
+    if (st.day > dayLimitNow()) {
       let best = 'player', bestN = -1;
       Object.keys(sh).forEach((k) => {
         if (k === 'none') return;
@@ -546,6 +595,7 @@ window.GP = window.GP || {};
     // 防衛バトルは はさめないので ランダムな しゅうげきは 起きないが、
     // 1日ごとに「まもりが いちばん ひくい マス」を いちばん よわい 勢力に のっとられる
     let days = 0;
+    let revoked = false;              // るす中に ぜん制圧の かちが くつがえったか
     const stolen = [];
     const dayFrom = st.day;
     if (hours > R.offlineCapH && !st.ended) {
@@ -553,17 +603,26 @@ window.GP = window.GP || {};
       while (days < want && days < 90 && !st.ended) {
         nextDay({ noPlayerAttack: true });
         days++;
-        const hit = offlineSteal();
+        const hit = offlineSteal();    // けっちゃく した 日でも のっとられる
         if (hit) stolen.push(hit);
+        checkWipe(false);              // ふっかつ したら また ねらえる ように（ボーナスなし）
+        // ぜん制圧の かちは、るす中に 1マス とられた じてんで くつがえる。
+        // （時間ぎれの けっちゃくは そのまま。日づけは もう もどせない ため）
+        if (st.ended === 'win' && st.day <= dayLimitNow() && shares().player < D.TILES.length) {
+          st.ended = null;
+          revoked = true;
+          log('るすの あいだに なわばりを とりかえされ、しょうりが くつがえった…', 'bad');
+        }
       }
       st.lastSeen = now;               // nextDay が 上書きするので もどす
     }
 
     if (!any && !days) return null;
-    return { hours: h, gained: out, days, dayFrom, dayTo: st.day, stolen };
+    return { hours: h, gained: out, days, dayFrom, dayTo: st.day, stolen, revoked };
   }
 
-  /** るす中の のっとり：まもり最小の 自マスを、区画数が いちばん すくない 勢力へ */
+  /** るす中の のっとり：まもり最小の 自マスを、区画数が いちばん すくない 勢力へ
+   *  ぜんめつ（区画 0）の 勢力も ふくめる → 区画 0 が いちばん すくないので さいゆうせんで 敗者復活する */
   function offlineSteal() {
     const st = S.data;
     const mine = ownedTileIds();
@@ -571,11 +630,11 @@ window.GP = window.GP || {};
     let tid = mine[0];
     mine.forEach((id) => { if (tileDefense(id) < tileDefense(tid)) tid = id; });
     const sh = shares();
-    const alive = D.RIVALS.filter((f) => sh[f] > 0);
-    if (!alive.length) return null;
-    alive.sort((a, b) =>
+    const cands = D.RIVALS.slice();             // ぜんめつ勢力も ふくめる
+    cands.sort((a, b) =>
       sh[a] - sh[b] || (D.FACTIONS[a].power || 1) - (D.FACTIONS[b].power || 1));
-    const fac = alive[0];
+    const fac = cands[0];
+    const revived = sh[fac] === 0;
     const t = tileById(tid);
     st.tiles[tid].owner = fac;
     st.tiles[tid].days = 0;
@@ -583,8 +642,9 @@ window.GP = window.GP || {};
     st.stats.lost += 1;
     st.kigenMod -= 6;
     st.kigen = U.clamp(Math.round(kigenTarget() + st.kigenMod), 0, 100);
-    log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」を のっとった…`, 'bad');
-    return { tile: tid, name: t.name, fac };
+    if (revived) log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」で ふっかつした！`, 'bad');
+    else log(`るすの あいだに ${D.FACTIONS[fac].name}が「${t.name}」を のっとった…`, 'bad');
+    return { tile: tid, name: t.name, fac, revived };
   }
 
   /* =========================================================
@@ -637,6 +697,15 @@ window.GP = window.GP || {};
     d.seen = d.seen || {};
     d.equips = d.equips || {};
     d.pendingScout = Array.isArray(d.pendingScout) ? d.pendingScout : null;
+    d.dayBonus = d.dayBonus || 0;
+    d.wiped = d.wiped || {};
+    // ぜん制圧の かちは 区画が そろって いる ことが じょうけん。
+    // るす中に とりかえされた セーブ（旧バージョンの ものを ふくむ）は つづきに もどす
+    if (d.ended === 'win' && d.day <= R.dayLimit + (d.dayBonus || 0)) {
+      let owned = 0;
+      Object.keys(d.tiles || {}).forEach((id) => { if (d.tiles[id].owner === 'player') owned += 1; });
+      if (owned < D.TILES.length) d.ended = null;
+    }
     S.data = d;
     return d;
   }
@@ -651,6 +720,7 @@ window.GP = window.GP || {};
     canPay, pay, gain, lackList, log,
     addEquip, equipFree, setEquip, unitById, teamUnits, teamPower, alertNeighbors,
     tileById, tileNeighborIds, attackableIds, shares, tileDefense, enemyPower,
+    dayLimitNow, checkWipe,
     nextDay, applyOffline,
   };
 })(window.GP);
