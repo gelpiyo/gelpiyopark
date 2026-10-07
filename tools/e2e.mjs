@@ -287,6 +287,39 @@ await step('なかま詳細を ひらいても 一意', `(()=>{
   GP.ui.closeModal();
   return dup.length ? 'NG 重複'+dup.length+'件' : 'OK '+ids.length+'個すべて一意';})()`);
 
+/* ---------- けっちゃく画面の ボタン ---------- */
+await step('ぜん制圧の クリアは つづけられる', `(()=>{
+  const St=GP.state, st=St.st;
+  window.__keep={}; Object.keys(st.tiles).forEach(id=>{ window.__keep[id]=st.tiles[id].owner; st.tiles[id].owner='player'; });
+  st.ended='win'; st.endedBy='conquest'; st.endedDay=st.day;
+  GP.main.showEnding();
+  const btns=[...document.querySelectorAll('#modal-foot .btn')].map(b=>b.textContent.trim());
+  const cont=[...document.querySelectorAll('#modal-foot .btn')].find(b=>/つづき/.test(b.textContent));
+  if(cont) cont.click();                      // = つづきを あそぶ（endingShown も リセット）
+  GP.ui.closeModal();
+  Object.keys(window.__keep).forEach(id=>{ st.tiles[id].owner=window.__keep[id]; });
+  St.checkWipe(false); st.ended=null; st.endedBy=''; st.overtime=false;
+  return JSON.stringify({buttons:btns, つづける:btns.some(b=>/つづき/.test(b))});})()`);
+await step('  タイムリミットは「つづきを あそぶ」なし', `(()=>{
+  const St=GP.state, st=St.st;
+  st.ended='timeup'; st.endedBy='time'; st.endedDay=st.day;
+  GP.main.showEnding();
+  const btns=[...document.querySelectorAll('#modal-foot .btn')].map(b=>b.textContent.trim());
+  const hint=[...document.querySelectorAll('#modal-body .hint')].map(x=>x.textContent).join('|');
+  GP.ui.closeModal(); st.ended=null; st.endedBy=''; st.overtime=false;
+  return JSON.stringify({buttons:btns, つづける:btns.some(b=>/つづき/.test(b)),
+    あんない:/とうたつ/.test(hint)});})()`);
+
+await step('  はいぼくも「つづきを あそぶ」なし', `(()=>{
+  const St=GP.state, st=St.st;
+  st.ended='lose'; st.endedBy='wipeout'; st.endedDay=st.day;
+  GP.main.showEnding();
+  const btns=[...document.querySelectorAll('#modal-foot .btn')].map(b=>b.textContent.trim());
+  const hint=[...document.querySelectorAll('#modal-body .hint')].map(x=>x.textContent).pop();
+  GP.ui.closeModal(); st.ended=null; st.endedBy='';
+  return JSON.stringify({buttons:btns, つづける:btns.some(b=>/つづき/.test(b)),
+    あんない:/おしまい/.test(hint||'')});})()`);
+
 /* ---------- メニュー・セーブ ---------- */
 await step('メニュー', `(()=>{document.getElementById('btn-menu').click();
   return document.getElementById('modal-title').textContent;})()`);

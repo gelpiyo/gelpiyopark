@@ -38,6 +38,9 @@ window.GP = window.GP || {};
       stats: { battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 },
       lastSeen: Date.now(),
       ended: null,
+      endedDay: 0,          // けっちゃく した 日（リザルトの ひょうじ用）
+      endedBy: '',          // conquest（ぜん制圧）/ time（時間ぎれ）/ wipeout（ぜんめつ）
+      overtime: false,      // タイムリミット後に「つづきを あそぶ」を えらんだか
       dayBonus: 0,          // ライバル ぜんめつ ボーナスで のびた 日数
       wiped: {},            // ぜんめつ ずみの ライバル（ふっかつ したら おりる）
       wipedOnce: {},        // 1度でも じぶんで たおした ライバル（2回目からは +wipeBonusAgain）
@@ -465,10 +468,13 @@ window.GP = window.GP || {};
     checkWipe(false);              // AI 同士の つぶし合いは ボーナスの たいしょう外
 
     // --- 日づけ ---
-    st.day += 1;
+    // タイムリミットの 日を おえた ときは 日づけを すすめない。
+    // （DAY 10 までの ゲームで DAY 11 が ひょうじ されない ように）
+    const lastDay = !st.overtime && st.day >= dayLimitNow();
+    if (!lastDay) st.day += 1;
     st.lastSeen = Date.now();
 
-    checkEnd(rep);
+    checkEnd(rep, lastDay);
     return rep;
   }
 
@@ -548,19 +554,27 @@ window.GP = window.GP || {};
   }
 
   /* ---------- しゅうりょう はんてい ---------- */
-  function checkEnd(rep) {
+  function checkEnd(rep, lastDay) {
     const st = S.data;
     const sh = shares();
+    // おえた 日（lastDay の ときは 日づけを すすめて いない）
+    const doneDay = lastDay ? st.day : st.day - 1;
     if (sh.player === 0) {
       st.ended = 'lose';
+      st.endedDay = doneDay;
+      st.endedBy = 'wipeout';
       rep.msgs.push('こうえんを ぜんぶ とられてしまった…');
       return;
     }
     if (sh.player === D.TILES.length) {
       st.ended = 'win';
+      st.endedDay = doneDay;
+      st.endedBy = 'conquest';        // ぜん制圧の かち（るす中に とりかえされると くつがえる）
       return;
     }
-    if (st.day > dayLimitNow()) {
+    if (lastDay) {
+      st.endedDay = doneDay;
+      st.endedBy = 'time';            // 時間ぎれの けっちゃく（くつがえらない）
       let best = 'player', bestN = -1;
       Object.keys(sh).forEach((k) => {
         if (k === 'none') return;
@@ -608,7 +622,7 @@ window.GP = window.GP || {};
         checkWipe(false);              // ふっかつ したら また ねらえる ように（ボーナスなし）
         // ぜん制圧の かちは、るす中に 1マス とられた じてんで くつがえる。
         // （時間ぎれの けっちゃくは そのまま。日づけは もう もどせない ため）
-        if (st.ended === 'win' && st.day <= dayLimitNow() && shares().player < D.TILES.length) {
+        if (st.ended === 'win' && st.endedBy === 'conquest' && shares().player < D.TILES.length) {
           st.ended = null;
           revoked = true;
           log('るすの あいだに なわばりを とりかえされ、しょうりが くつがえった…', 'bad');
@@ -698,10 +712,14 @@ window.GP = window.GP || {};
     d.equips = d.equips || {};
     d.pendingScout = Array.isArray(d.pendingScout) ? d.pendingScout : null;
     d.dayBonus = d.dayBonus || 0;
+    d.endedDay = d.endedDay || 0;
+    d.endedBy = d.endedBy || '';
+    d.overtime = !!d.overtime;
     d.wiped = d.wiped || {};
     // ぜん制圧の かちは 区画が そろって いる ことが じょうけん。
     // るす中に とりかえされた セーブ（旧バージョンの ものを ふくむ）は つづきに もどす
-    if (d.ended === 'win' && d.day <= R.dayLimit + (d.dayBonus || 0)) {
+    if (d.ended === 'win'
+        && (d.endedBy ? d.endedBy === 'conquest' : d.day <= R.dayLimit + (d.dayBonus || 0))) {
       let owned = 0;
       Object.keys(d.tiles || {}).forEach((id) => { if (d.tiles[id].owner === 'player') owned += 1; });
       if (owned < D.TILES.length) d.ended = null;

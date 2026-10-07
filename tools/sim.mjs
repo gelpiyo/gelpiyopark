@@ -231,6 +231,33 @@ function unitTests(GP) {
   St.persist();
   ok(St.restore().ended === 'win', '時間ぎれの かちは すくいの たいしょう外');
 
+  // タイムリミットの 日で とまる：DAY が リミットを こえない
+  const st6 = St.newGame();
+  let guard = 0;
+  while (!st6.ended && guard++ < 60) St.nextDay({ noPlayerAttack: true });
+  ok(st6.ended !== null, 'リミットで かならず けっちゃく する');
+  ok(st6.day <= St.dayLimitNow(),
+    'DAY が リミットを こえない（実際 DAY ' + st6.day + ' / ' + St.dayLimitNow() + '）');
+  ok(st6.endedDay === st6.day, 'けっちゃく日が きょうの DAY と そろう');
+  ok(st6.endedBy === 'time' || st6.endedBy === 'conquest' || st6.endedBy === 'wipeout',
+    'けっちゃくの しゅるいを きろくする（' + st6.endedBy + '）');
+
+  // 時間ぎれの かちは るす中でも セーブ復元でも くつがえらない
+  const st7 = St.newGame();
+  st7.ended = 'win'; st7.endedBy = 'time'; st7.day = St.dayLimitNow(); st7.tiles.t02.owner = 'cat';
+  St.persist();
+  ok(St.restore().ended === 'win', '時間ぎれの かちは すくいの たいしょう外（endedBy ではんてい）');
+
+  // 「つづきを あそぶ」（overtime）では リミットを こえて 日が すすむ
+  const st8 = St.newGame();
+  st8.day = St.dayLimitNow();
+  St.nextDay({ noPlayerAttack: true });
+  const stoppedAt = st8.day;
+  st8.ended = null; st8.overtime = true;             // = つづきを あそぶ
+  St.nextDay({ noPlayerAttack: true });
+  ok(st8.day === stoppedAt + 1,
+    'えんちょうせんでは 日が すすむ（' + stoppedAt + ' → ' + st8.day + '）');
+
   return fails;
 }
 

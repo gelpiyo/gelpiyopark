@@ -176,7 +176,11 @@ window.GP = window.GP || {};
     ]);
     sec('🏁 しょうり じょうけん', [
       'すべての 区画を せいあつ すれば しょうり。',
-      `DAY ${D.RULES.dayLimit} までに いちばん おおくの 区画を もっていても しょうり。`,
+      // あそびかたは タイトルからも ひらくので、ゲーム中は いまの リミットを だす
+      (St.st
+        ? `DAY ${St.dayLimitNow()} までに いちばん おおくの 区画を もっていても しょうり`
+          + (St.st.dayBonus ? `（きほん ${D.RULES.dayLimit}日 ＋ ぜんめつ ボーナス ${St.st.dayBonus}日）。` : '。')
+        : `DAY ${D.RULES.dayLimit} までに いちばん おおくの 区画を もっていても しょうり。`),
       `あかぴよ団・カラス組・ネコ軍団の どれかを じぶんで ぜんめつ させる ごとに タイムリミットが +${D.RULES.wipeBonus}日！`,
       `ながい るすの あいだに あいては ふっかつ する。たおしなおすと +${D.RULES.wipeBonusAgain}日（ぜん制圧の かちも とりかえされると くつがえる）。`,
       'ぜんぶ とられると まけ。',
@@ -194,7 +198,8 @@ window.GP = window.GP || {};
     const sh = St.shares();
     [
       ['いま の 日づけ', 'DAY ' + st.day + ' / ' + St.dayLimitNow()
-        + (st.dayBonus ? '（ぜんめつ ボーナス +' + st.dayBonus + '日）' : '')],
+        + (st.overtime ? '（えんちょうせん）'
+          : st.dayBonus ? '（ぜんめつ ボーナス +' + st.dayBonus + '日）' : '')],
       ['なわばり', sh.player + ' / ' + D.TILES.length + ' 区画'],
       ['なかま', st.units.length + ' ぴよ'],
       ['バトル', s.battles + ' かい（' + s.wins + ' しょう）'],
@@ -250,11 +255,14 @@ window.GP = window.GP || {};
   /* =========================================================
      エンディング
      ========================================================= */
-  let endingShown = false;
+  // おなじ けっちゃくを 2ど ださない ための しるし（しゅるいが かわれば また だす）
+  let shownEnding = '';
   function showEnding() {
     const st = St.st;
-    if (!st.ended || endingShown) return;
-    endingShown = true;
+    if (!st.ended) return;
+    const key = st.ended + ':' + (st.endedBy || '') + ':' + (st.endedDay || st.day);
+    if (shownEnding === key) return;
+    shownEnding = key;
     const sh = St.shares();
     const win = st.ended === 'win';
     const body = el('div', { style: 'text-align:center' });
@@ -282,10 +290,10 @@ window.GP = window.GP || {};
     body.appendChild(el('p', {
       class: 'hint',
       text: win
-        ? `DAY ${st.day - 1} までに ${sh.player} 区画を てにいれて、こうえん いちばんの グループに なりました！`
+        ? `DAY ${st.endedDay || st.day} までに ${sh.player} 区画を てにいれて、こうえん いちばんの グループに なりました！`
         : st.ended === 'lose'
           ? 'なわばりを ぜんぶ とられて しまいました…。つぎは ゆうぐを たてて ごきげん度を たかく たもとう。'
-          : `DAY ${St.dayLimitNow()} が すぎました。あなたの 区画は ${sh.player} でした。`,
+          : `タイムリミットの DAY ${St.dayLimitNow()} まで あそびました。あなたの 区画は ${sh.player} でした。`,
     }));
 
     const s = st.stats;
@@ -296,13 +304,39 @@ window.GP = window.GP || {};
      ['さいこう ごきげん度', st.kigen + '']]
       .forEach(([k, v]) => body.appendChild(UI.kv(k, v)));
 
+    // つづけられるのは ぜん制圧の クリアだけ。
+    // タイムリミット・なわばり ぜんめつ は ここで おしまい。
+    // （endedBy の ない ふるい セーブは 区画数から すいそく する）
+    const canContinue = st.endedBy
+      ? st.endedBy === 'conquest'
+      : (st.ended === 'win' && sh.player === D.TILES.length);
+    if (!canContinue) {
+      body.appendChild(el('p', {
+        class: 'hint', style: 'margin-top:10px',
+        text: st.ended === 'lose'
+          ? 'こうえんを ぜんぶ とられて しまいました。ここで おしまいです。'
+          : 'タイムリミットに とうたつ しました。ここで おしまいです。',
+      }));
+    }
+
+    const foot = [];
+    if (canContinue) {
+      foot.push({
+        label: 'つづきを あそぶ', cls: 'btn-ghost',
+        onClick: () => {
+          st.ended = null;
+          // リミットの 日に けっちゃく して いた ばあいだけ えんちょうせん あつかい
+          if (st.day >= St.dayLimitNow()) st.overtime = true;
+          shownEnding = '';        // このあと ぜん制圧 したら また リザルトを だす
+          St.persist(); UI.refreshHud(); UI.rerender();
+        },
+      });
+    }
+    foot.push({ label: 'さいしょから', cls: 'btn-accent', onClick: () => { shownEnding = ''; setTimeout(startNew, 120); } });
+
     UI.modal({
       title: win ? '🏆 クリア！' : 'ゲーム しゅうりょう',
-      body, noClose: true,
-      buttons: [
-        { label: 'つづきを あそぶ', cls: 'btn-ghost', onClick: () => { st.ended = null; St.persist(); } },
-        { label: 'さいしょから', cls: 'btn-accent', onClick: () => { endingShown = false; setTimeout(startNew, 120); } },
-      ],
+      body, noClose: true, buttons: foot,
     });
   }
 
@@ -355,7 +389,7 @@ window.GP = window.GP || {};
     $('#btn-menu').addEventListener('click', showMenu);
     $('#btn-continue').addEventListener('click', () => {
       if (!St.restore()) { UI.toast('セーブデータが よめませんでした', 'bad'); return; }
-      endingShown = false;
+      shownEnding = '';
       enterGame(false);
     });
 

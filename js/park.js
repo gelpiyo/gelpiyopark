@@ -41,7 +41,9 @@ window.GP = window.GP || {};
 
     const sub = $('#nextday-sub');
     const left = St.dayLimitNow() - st.day + 1;
-    sub.textContent = `せいさん回収＋ライバル行動　のこり ${Math.max(0, left)}日`;
+    sub.textContent = st.overtime
+      ? 'せいさん回収＋ライバル行動　えんちょうせん'
+      : `せいさん回収＋ライバル行動　のこり ${Math.max(0, left)}日`;
   }
 
   function renderGrid() {
