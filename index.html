@@ -41,18 +41,18 @@
     <div class="hud-row hud-top">
       <div class="hud-day"><span class="hud-day-label">DAY</span><strong id="hud-day">1</strong></div>
       <div class="kigen-wrap" id="kigen-wrap">
-        <div class="kigen-face" id="kigen-face">😊</div>
+        <div class="kigen-face" id="kigen-face" data-icon="face3"></div>
         <div class="kigen-bar"><div class="kigen-fill" id="kigen-fill"></div></div>
         <div class="kigen-val"><span id="kigen-val">50</span></div>
       </div>
       <button class="hud-menu" id="btn-menu" type="button" aria-label="メニュー">☰</button>
     </div>
     <div class="hud-row hud-res" id="hud-res">
-      <div class="res" data-res="danbo"><span class="res-ico">📦</span><span class="res-num" id="res-danbo">0</span></div>
-      <div class="res" data-res="juice"><span class="res-ico">🥤</span><span class="res-num" id="res-juice">0</span></div>
-      <div class="res" data-res="snack"><span class="res-ico">🍪</span><span class="res-num" id="res-snack">0</span></div>
-      <div class="res" data-res="menko"><span class="res-ico">🎴</span><span class="res-num" id="res-menko">0</span></div>
-      <div class="res res-genki" data-res="genki"><span class="res-ico">⚡</span><span class="res-num" id="res-genki">3</span></div>
+      <div class="res" data-res="danbo"><span class="res-ico" data-icon="danbo"></span><span class="res-num" id="res-danbo">0</span></div>
+      <div class="res" data-res="juice"><span class="res-ico" data-icon="juice"></span><span class="res-num" id="res-juice">0</span></div>
+      <div class="res" data-res="snack"><span class="res-ico" data-icon="snack"></span><span class="res-num" id="res-snack">0</span></div>
+      <div class="res" data-res="menko"><span class="res-ico" data-icon="menko"></span><span class="res-num" id="res-menko">0</span></div>
+      <div class="res res-genki" data-res="genki"><span class="res-ico" data-icon="genki"></span><span class="res-num" id="res-genki">3</span></div>
     </div>
   </header>
 
@@ -148,10 +148,10 @@
             <span>おさんぽ スカウト</span><small id="free-sub">1日1回 むりょう</small>
           </button>
           <button class="btn btn-accent btn-block" id="btn-scout1" type="button">
-            <span>1かい スカウト</span><small>🎴 5</small>
+            <span>1かい スカウト</span><small><span class="ico-wrap" data-icon="menko"></span> 5</small>
           </button>
           <button class="btn btn-primary btn-block" id="btn-scout10" type="button">
-            <span>10れん スカウト</span><small>🎴 45／R以上 1体かくてい</small>
+            <span>10れん スカウト</span><small><span class="ico-wrap" data-icon="menko"></span> 45／R以上 1体かくてい</small>
           </button>
         </div>
         <div class="panel">
@@ -161,7 +161,7 @@
             <li><b class="rar-r">R</b><span>26%</span>バランスが いい</li>
             <li><b class="rar-n">N</b><span>70%</span>かずが たより</li>
           </ul>
-          <p class="hint">おなじ ぴよが かぶったら「なかよしのかけら 🧩」に なります（育成に つかえる）</p>
+          <p class="hint">おなじ ぴよが かぶったら「なかよしのかけら <span class="ico-wrap" data-icon="kakera"></span>」に なります（育成に つかえる）</p>
         </div>
       </div>
     </section>
@@ -169,10 +169,10 @@
   </main>
 
   <nav class="tabbar" id="tabbar">
-    <button class="tab is-on" data-tab="park" type="button"><span class="tab-ico">🏞</span><span class="tab-txt">こうえん</span></button>
-    <button class="tab" data-tab="map" type="button"><span class="tab-ico">🗺</span><span class="tab-txt">なわばり</span></button>
-    <button class="tab" data-tab="squad" type="button"><span class="tab-ico">🐣</span><span class="tab-txt">なかま</span><span class="tab-badge" id="badge-squad" hidden></span></button>
-    <button class="tab" data-tab="gacha" type="button"><span class="tab-ico">🎁</span><span class="tab-txt">スカウト</span><span class="tab-badge" id="badge-gacha" hidden></span></button>
+    <button class="tab is-on" data-tab="park" type="button"><span class="tab-ico" data-icon="tabPark"></span><span class="tab-txt">こうえん</span></button>
+    <button class="tab" data-tab="map" type="button"><span class="tab-ico" data-icon="tabMap"></span><span class="tab-txt">なわばり</span></button>
+    <button class="tab" data-tab="squad" type="button"><span class="tab-ico" data-icon="tabSquad"></span><span class="tab-txt">なかま</span><span class="tab-badge" id="badge-squad" hidden></span></button>
+    <button class="tab" data-tab="gacha" type="button"><span class="tab-ico" data-icon="tabGacha"></span><span class="tab-txt">スカウト</span><span class="tab-badge" id="badge-gacha" hidden></span></button>
   </nav>
 </div>
 
@@ -217,6 +217,7 @@
 
 <script src="js/util.js"></script>
 <script src="js/data.js"></script>
+<script src="js/icons.js"></script>
 <script src="js/piyodata.js"></script>
 <script src="js/piyo.js"></script>
 <script src="js/hex.js"></script>

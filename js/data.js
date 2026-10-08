@@ -11,11 +11,11 @@ window.GP = window.GP || {};
      リソース
      --------------------------------------------------------- */
   const RES = {
-    danbo: { id: 'danbo', name: 'ダンボール', ico: '📦' },
-    juice: { id: 'juice', name: 'ジュース缶', ico: '🥤' },
-    snack: { id: 'snack', name: 'おやつ', ico: '🍪' },
-    menko: { id: 'menko', name: 'レアメンコ', ico: '🎴' },
-    kakera: { id: 'kakera', name: 'なかよしのかけら', ico: '🧩' },
+    danbo: { id: 'danbo', name: 'ダンボール', ico: 'danbo' },
+    juice: { id: 'juice', name: 'ジュース缶', ico: 'juice' },
+    snack: { id: 'snack', name: 'おやつ', ico: 'snack' },
+    menko: { id: 'menko', name: 'レアメンコ', ico: 'menko' },
+    kakera: { id: 'kakera', name: 'なかよしのかけら', ico: 'kakera' },
   };
   const RES_ORDER = ['danbo', 'juice', 'snack', 'menko'];
 
@@ -28,54 +28,54 @@ window.GP = window.GP || {};
      bonus  : 特殊効果 { teamCap:1 } / { roster:2 } / { def:2 }
      --------------------------------------------------------- */
   const FACILITIES = [
-    { id: 'sunaba', name: 'すなば', ico: '🏖', tag: 'せいさん',
+    { id: 'sunaba', name: 'すなば', ico: 'sunaba', tag: 'せいさん',
       desc: 'ダンボールの きれはしが よく みつかる すなの ひろば。',
       cost: { danbo: 10 }, yield: { danbo: 2 }, kigen: 2, cap: 2 },
 
-    { id: 'swing', name: 'ブランコ', ico: '🎠', tag: 'せいさん',
+    { id: 'swing', name: 'ブランコ', ico: 'swing', tag: 'せいさん',
       desc: 'こいで あそぶと のどが かわく。ジュース缶が あつまる。',
       cost: { danbo: 14, juice: 4 }, yield: { juice: 2 }, kigen: 3, cap: 2 },
 
-    { id: 'fountain', name: 'みずのみば', short: 'みずのみ', ico: '⛲', tag: 'せいさん',
+    { id: 'fountain', name: 'みずのみば', short: 'みずのみ', ico: 'fountain', tag: 'せいさん',
       desc: 'みんなの きゅうすいスポット。ジュース缶の かいしゅう率アップ。',
       cost: { danbo: 12, juice: 8 }, yield: { juice: 3 }, kigen: 3, cap: 1 },
 
-    { id: 'gym', name: 'ジャングルジム', short: 'ジム', ico: '🧗', tag: 'せいさん',
+    { id: 'gym', name: 'ジャングルジム', short: 'ジム', ico: 'gym', tag: 'せいさん',
       desc: 'てっぺんから ざいりょうが よく みえる。ダンボール産出 大。',
       cost: { danbo: 34 }, yield: { danbo: 3 }, kigen: 4, cap: 3 },
 
-    { id: 'candy', name: 'だがしや', ico: '🍬', tag: 'せいさん',
+    { id: 'candy', name: 'だがしや', ico: 'candy', tag: 'せいさん',
       desc: 'おやつが てにはいる。こうしょう（がいこう）に かかせない。',
       cost: { danbo: 24, juice: 14 }, yield: { snack: 3 }, kigen: 4, cap: 3 },
 
-    { id: 'slide', name: 'きょだいすべりだい', short: 'すべりだい', ico: '🛝', tag: 'ごきげん',
+    { id: 'slide', name: 'きょだいすべりだい', short: 'すべりだい', ico: 'slide', tag: 'ごきげん',
       desc: 'こうえん いちの 大にんき ゆうぐ。ごきげん度が ぐんと あがる。',
       cost: { danbo: 40, juice: 20 }, yield: { juice: 4 }, kigen: 9, cap: 4 },
 
-    { id: 'base', name: 'ひみつきち', ico: '🏕', tag: 'とくしゅ',
+    { id: 'base', name: 'ひみつきち', ico: 'base', tag: 'とくしゅ',
       desc: 'さくせん会議の ばしょ。出撃メンバーの わくが ふえる。',
       cost: { danbo: 55, juice: 26, snack: 8 }, yield: { danbo: 3 }, kigen: 5, cap: 4,
       bonus: { teamCap: 1 } },
 
-    { id: 'house', name: 'ぴよハウス', ico: '🏠', tag: 'とくしゅ',
+    { id: 'house', name: 'ぴよハウス', ico: 'house', tag: 'とくしゅ',
       desc: 'なかまが とまれる おうち。もてる なかまの 上限が ふえる。',
       cost: { danbo: 28, juice: 10, snack: 4 }, yield: {}, kigen: 2, cap: 2,
       bonus: { roster: 4 } },
 
-    { id: 'craft', name: 'こうさくしつ', short: 'こうさく', ico: '🧰', tag: 'とくしゅ',
+    { id: 'craft', name: 'こうさくしつ', short: 'こうさく', ico: 'craft', tag: 'とくしゅ',
       desc: 'ダンボールを けずって メンコを つくる。スカウトの もとで。',
       cost: { danbo: 45, juice: 18, snack: 12 }, yield: { menko: 1 }, kigen: 1, cap: 1 },
 
-    { id: 'fort', name: 'すなやま とりで', short: 'とりで', ico: '🏰', tag: 'とくしゅ',
+    { id: 'fort', name: 'すなやま とりで', short: 'とりで', ico: 'fort', tag: 'とくしゅ',
       desc: 'ホーム区画の まもりを かためる。しゅうげきに つよくなる。',
       cost: { danbo: 36, juice: 12 }, yield: {}, kigen: 1, cap: 1,
       bonus: { def: 2 } },
 
-    { id: 'bench', name: 'ベンチ', ico: '🪑', tag: 'ごきげん',
+    { id: 'bench', name: 'ベンチ', ico: 'bench', tag: 'ごきげん',
       desc: 'ひとやすみ どころ。ちいさいけれど ごきげんに ひびく。',
       cost: { danbo: 8 }, yield: {}, kigen: 3, cap: 2 },
 
-    { id: 'flower', name: 'はなだん', ico: '🌷', tag: 'ごきげん',
+    { id: 'flower', name: 'はなだん', ico: 'flower', tag: 'ごきげん',
       desc: 'みばえが よくなって みんな ごきげん。',
       cost: { danbo: 10, juice: 4 }, yield: {}, kigen: 5, cap: 0 },
   ];
@@ -109,22 +109,22 @@ window.GP = window.GP || {};
      ぴよの やくわり（タイプ）
      --------------------------------------------------------- */
   const ROLES = {
-    rush:  { id: 'rush',  name: 'そっこう',   short: '速', ico: '🏃', color: '#F0844A',
+    rush:  { id: 'rush',  name: 'そっこう',   short: '速', ico: 'rush', color: '#F0844A',
              desc: 'すばしっこい。まっさきに つっこむ。えんきょりに つよい。',
              base: { hp: 56, atk: 14, def: 4, rng: 1, mov: 3, spd: 12 } },
-    range: { id: 'range', name: 'えんきょり', short: '遠', ico: '💦', color: '#4EA8DE',
+    range: { id: 'range', name: 'えんきょり', short: '遠', ico: 'range', color: '#4EA8DE',
              desc: '水鉄砲で とおくから ねらう。ぼうぎょに つよい。',
              base: { hp: 44, atk: 15, def: 3, rng: 3, mov: 2, spd: 10 } },
-    guard: { id: 'guard', name: 'ぼうぎょ',   short: '盾', ico: '🛡', color: '#8C7A5B',
+    guard: { id: 'guard', name: 'ぼうぎょ',   short: '盾', ico: 'shield', color: '#8C7A5B',
              desc: 'ダンボール盾で うけとめる。そっこうに つよい。',
              base: { hp: 88, atk: 9,  def: 10, rng: 1, mov: 2, spd: 7 } },
-    brain: { id: 'brain', name: 'さくせん',   short: '策', ico: '🧠', color: '#8B6FD6',
+    brain: { id: 'brain', name: 'さくせん',   short: '策', ico: 'brain', color: '#8B6FD6',
              desc: 'なかまを おうえん・かいふくする しえん やく。',
              base: { hp: 48, atk: 8,  def: 5, rng: 2, mov: 2, spd: 11 } },
-    boss:  { id: 'boss',  name: 'たいしょう', short: '将', ico: '👑', color: '#E4614F',
+    boss:  { id: 'boss',  name: 'たいしょう', short: '将', ico: 'crown', color: '#E4614F',
              desc: 'よわてんが ない ばんのう タイプ。まわりを つよくする。',
              base: { hp: 74, atk: 16, def: 7, rng: 1, mov: 2, spd: 9 } },
-    trick: { id: 'trick', name: 'おじゃま',   short: '妨', ico: '😜', color: '#57C785',
+    trick: { id: 'trick', name: 'おじゃま',   short: '妨', ico: 'trick', color: '#57C785',
              desc: 'あいての ちからを さげる いたずら やく。',
              base: { hp: 52, atk: 10, def: 5, rng: 2, mov: 3, spd: 13 } },
   };
@@ -194,16 +194,16 @@ window.GP = window.GP || {};
      そうび
      --------------------------------------------------------- */
   const EQUIPS = [
-    { id: 'straw',   name: '麦わら帽子',       ico: '👒', mod: { def: 2 },                    note: 'ごきげん +1' , kigen: 1 },
-    { id: 'net',     name: '虫取り網',         ico: '🥅', mod: { atk: 3 } },
-    { id: 'randsel', name: 'ランドセル',       ico: '🎒', mod: { hp: 16, def: 2 } },
-    { id: 'gun',     name: '水鉄砲',           ico: '🔫', mod: { atk: 4 },                    note: 'えんきょりなら しゃてい +1', special: 'rangeUp' },
-    { id: 'shield',  name: 'ダンボール盾',     ico: '🛡', mod: { def: 6, mov: -1 } },
-    { id: 'boots',   name: 'ながぐつ',         ico: '🥾', mod: { mov: 1, spd: 2 },            note: 'みずたまりを むし', special: 'ignoreWater' },
-    { id: 'goggle',  name: 'すいちゅうメガネ', ico: '🥽', mod: { spd: 3, atk: 1 } },
-    { id: 'towel',   name: 'まきタオル',       ico: '🧣', mod: { hp: 14 } },
-    { id: 'whistle', name: 'ホイッスル',       ico: '📣', mod: { spd: 4 },                    note: 'みかた ぜんいん こうげき +1', special: 'aura' },
-    { id: 'crown',   name: 'きんのかんむり',   ico: '👑', mod: { hp: 12, atk: 3, def: 3 } },
+    { id: 'straw',   name: '麦わら帽子',       ico: 'straw', mod: { def: 2 },                    note: 'ごきげん +1' , kigen: 1 },
+    { id: 'net',     name: '虫取り網',         ico: 'net', mod: { atk: 3 } },
+    { id: 'randsel', name: 'ランドセル',       ico: 'randsel', mod: { hp: 16, def: 2 } },
+    { id: 'gun',     name: '水鉄砲',           ico: 'gun', mod: { atk: 4 },                    note: 'えんきょりなら しゃてい +1', special: 'rangeUp' },
+    { id: 'shield',  name: 'ダンボール盾',     ico: 'shield', mod: { def: 6, mov: -1 } },
+    { id: 'boots',   name: 'ながぐつ',         ico: 'boots', mod: { mov: 1, spd: 2 },            note: 'みずたまりを むし', special: 'ignoreWater' },
+    { id: 'goggle',  name: 'すいちゅうメガネ', ico: 'goggle', mod: { spd: 3, atk: 1 } },
+    { id: 'towel',   name: 'まきタオル',       ico: 'towel', mod: { hp: 14 } },
+    { id: 'whistle', name: 'ホイッスル',       ico: 'whistle', mod: { spd: 4 },                    note: 'みかた ぜんいん こうげき +1', special: 'aura' },
+    { id: 'crown',   name: 'きんのかんむり',   ico: 'crown', mod: { hp: 12, atk: 3, def: 3 } },
   ];
   const EQUIP_BY_ID = {};
   EQUIPS.forEach((e) => { EQUIP_BY_ID[e.id] = e; });
@@ -249,15 +249,15 @@ window.GP = window.GP || {};
      地形
      --------------------------------------------------------- */
   const TERRAIN = {
-    hiroba:  { id: 'hiroba',  name: 'ひろば',   ico: '🌱', def: 0, yield: { danbo: 1, juice: 1 },
+    hiroba:  { id: 'hiroba',  name: 'ひろば',   ico: 'hiroba', def: 0, yield: { danbo: 1, juice: 1 },
                fill: '#B7E3A0', obst: 'none',  note: 'さえぎる ものが ない ひらけた ばしょ。' },
-    sunaba:  { id: 'sunaba',  name: 'すなば',   ico: '🏖', def: 1, yield: { danbo: 3 },
+    sunaba:  { id: 'sunaba',  name: 'すなば',   ico: 'sunaba', def: 1, yield: { danbo: 3 },
                fill: '#F2DFAE', obst: 'sand',  note: 'すなやまが あって うごきにくい。' },
-    ike:     { id: 'ike',     name: 'いけ',     ico: '💧', def: 3, yield: { juice: 4 },
+    ike:     { id: 'ike',     name: 'いけ',     ico: 'ike', def: 3, yield: { juice: 4 },
                fill: '#A8DCEF', obst: 'water', note: 'みずたまりだらけ。まもりが かたい。' },
-    kodachi: { id: 'kodachi', name: 'こだち',   ico: '🌳', def: 2, yield: { snack: 3, danbo: 1 },
+    kodachi: { id: 'kodachi', name: 'こだち',   ico: 'kodachi', def: 2, yield: { snack: 3, danbo: 1 },
                fill: '#93CE8C', obst: 'tree',  note: 'きが しげって えんきょりが とどきにくい。' },
-    oka:     { id: 'oka',     name: 'おかし山', ico: '⛰', def: 2, yield: { snack: 2, menko: 1 },
+    oka:     { id: 'oka',     name: 'おかし山', ico: 'oka', def: 2, yield: { snack: 2, menko: 1 },
                fill: '#E8C89A', obst: 'gym',   note: 'たかい ばしょ。メンコが ひろえる。' },
   };
 
@@ -291,13 +291,13 @@ window.GP = window.GP || {};
      さくせん（バトル方針）
      --------------------------------------------------------- */
   const TACTICS = [
-    { id: 'charge',  name: 'とつげき', ico: '⚡',
+    { id: 'charge',  name: 'とつげき', ico: 'genki',
       desc: 'いきおいよく つっこむ。こうげき+12% ／ ぼうぎょ-15% ／ うごき+1',
       mod: { atk: 1.12, def: 0.85, mov: 1 }, target: 'near' },
-    { id: 'defend',  name: 'まもり',   ico: '🛡',
+    { id: 'defend',  name: 'まもり',   ico: 'shield',
       desc: 'かたまって まもる。ぼうぎょ+25% ／ こうげき-8% ／ うごき-1',
       mod: { atk: 0.92, def: 1.25, mov: -1 }, target: 'near' },
-    { id: 'surround',name: 'とりかこみ', ico: '🎯',
+    { id: 'surround',name: 'とりかこみ', ico: 'surround',
       desc: 'よわい あいてから ねらう。すばやさ+3 ／ こうげき+4%',
       mod: { atk: 1.04, def: 1.0, spd: 3 }, target: 'weak' },
   ];
@@ -306,9 +306,9 @@ window.GP = window.GP || {};
      こうしょう（がいこう）
      --------------------------------------------------------- */
   const GIFTS = [
-    { id: 'juice', name: '高級ジュース', ico: '🥤', cost: { juice: 18 },  up: 9 },
-    { id: 'snack', name: '高級おやつ',   ico: '🍪', cost: { snack: 12 },  up: 14 },
-    { id: 'menko', name: 'レアメンコ',   ico: '🎴', cost: { menko: 3 },   up: 26 },
+    { id: 'juice', name: '高級ジュース', ico: 'juice', cost: { juice: 18 },  up: 9 },
+    { id: 'snack', name: '高級おやつ',   ico: 'snack', cost: { snack: 12 },  up: 14 },
+    { id: 'menko', name: 'レアメンコ',   ico: 'menko', cost: { menko: 3 },   up: 26 },
   ];
   const DIPLO = {
     pactNeed: 50,   // 平和条約（お約束）

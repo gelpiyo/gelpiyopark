@@ -84,7 +84,7 @@ window.GP = window.GP || {};
     const row = el('div', { class: 'cost-row' });
     D.RES_ORDER.forEach((k) => {
       if (!off.gained[k]) return;
-      row.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + off.gained[k]));
+      row.appendChild(el('span', { class: 'cost', html: GP.icons.res(k) + ' +' + off.gained[k] }));
     });
     if (!row.children.length && !off.days) { if (after) after(); return; }
     const h = off.hours;
@@ -97,7 +97,7 @@ window.GP = window.GP || {};
     if (row.children.length) body.appendChild(row);
     if (off.days) {
       body.appendChild(el('div', { class: 'panel', style: 'background:#FFF3D0;margin-bottom:0' }, [
-        el('div', { class: 'panel-title', text: `📅 ながい るすで 日づけが ${off.days}日 すすんだ` }),
+        el('div', { class: 'panel-title', html: UI.rich(`:calendar: ながい るすで 日づけが ${off.days}日 すすんだ`) }),
         el('p', {
           class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
           text: `DAY ${off.dayFrom} → DAY ${off.dayTo}。まいにちの しゅうかくは うけとりずみ。` +
@@ -106,7 +106,7 @@ window.GP = window.GP || {};
       ]));
       if (off.revoked) {
         body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
-          el('div', { class: 'panel-title', text: '😱 しょうりが くつがえった！' }),
+          el('div', { class: 'panel-title', html: UI.rich(':shock: しょうりが くつがえった！') }),
           el('p', {
             class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
             text: 'ぜんぶの 区画を せいあつ して いたのに、るす中に とりかえされて しまいました。'
@@ -120,7 +120,7 @@ window.GP = window.GP || {};
           .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}${x.revived ? '（ふっかつ！）' : ''}`)
           .join('、');
         body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
-          el('div', { class: 'panel-title', text: `⚠ るす中に 区画を ${stolen.length}こ のっとられた！` }),
+          el('div', { class: 'panel-title', html: UI.rich(`:warn: るす中に 区画を ${stolen.length}こ のっとられた！`) }),
           el('p', {
             class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
             text: names + (stolen.length > 3 ? ' など。' : '。') +
@@ -130,7 +130,7 @@ window.GP = window.GP || {};
       }
     }
     UI.modal({
-      title: '🏡 おかえりなさい！',
+      title: ':house: おかえりなさい！',
       body,
       buttons: [{ label: 'うけとる', cls: 'btn-accent' }],
       onClose: () => {
@@ -146,10 +146,10 @@ window.GP = window.GP || {};
   function showHowTo() {
     const body = el('div');
     const sec = (t, items) => {
-      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', text: t }));
+      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', html: UI.rich(t) }));
       const ul = el('ul', { class: 'log-list' });
       items.forEach((x) => ul.appendChild(el('li', {}, [
-        el('span', { class: 'log-day', text: '・' }), el('span', { class: 'log-txt', text: x }),
+        el('span', { class: 'log-day', text: '・' }), el('span', { class: 'log-txt', html: UI.rich(x) }),
       ])));
       body.appendChild(ul);
     };
@@ -157,24 +157,24 @@ window.GP = window.GP || {};
       class: 'hint',
       text: 'ゲルぴよ団の リーダーに なって、こうえんを そだてながら ライバルと なわばりを あらそう シミュレーションです。',
     }));
-    sec('🏞 こうえん（ないせい）', [
+    sec(':tabPark: こうえん（ないせい）', [
       'あきちを タップして ゆうぐを たてる。ゆうぐが ざいりょうを うみ、ごきげん度も あがる。',
       'ごきげん度が たかいほど せいさんも せんとうりょくも アップ。ひくいと だだっこストライキ！',
       '「つぎの日へ」で しゅうかく＋ライバルの こうどう。1日 1回 すすむ。',
       'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 区画が いちばん すくない 勢力に 1日 1こ のっとられます（ぜんめつした 勢力は ここで ふっかつ／さいごの 1マスは あんぜん）。',
     ]);
-    sec('🗺 なわばり', [
-      'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき ⚡を 1 つかう。',
+    sec(':tabMap: なわばり', [
+      'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき :genki:を 1 つかう。',
       'かてば 区画を せいあつ。ざいりょう・けいけんち・そうびが てにはいる。',
       'ライバルには 「こうしょう」で おやつを おくって なかよく なれる。お約束（不可侵）や 区画の じょうと も。',
       'まけると 区画を とられて ごきげん度も さがる。まもりを かためて そなえよう。',
     ]);
-    sec('🐣 なかま・スカウト', [
-      'やくわりの あいしょう：そっこう ▶ えんきょり ▶ ぼうぎょ ▶ そっこう（3すくみ）。',
+    sec(':tabSquad: なかま・スカウト', [
+      'やくわりの あいしょう：そっこう → えんきょり → ぼうぎょ → そっこう（3すくみ）。',
       'さくせん（とつげき／まもり／とりかこみ）で バトルの うごきが かわる。',
-      'スカウトで なかまを あつめ、そうび と かけら 🧩で そだてる。Lv5・12・20 で しんか！',
+      'スカウトで なかまを あつめ、そうび と かけら :kakera:で そだてる。Lv5・12・20 で しんか！',
     ]);
-    sec('🏁 しょうり じょうけん', [
+    sec(':trophy: しょうり じょうけん', [
       'すべての 区画を せいあつ すれば しょうり。',
       // あそびかたは タイトルからも ひらくので、ゲーム中は いまの リミットを だす
       (St.st
@@ -212,19 +212,19 @@ window.GP = window.GP || {};
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(showHowTo, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '📖' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('book') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'あそびかた' }), el('p', { text: 'ルールを もういちど よむ' })]),
     ]));
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { St.persist(); UI.toast('セーブしました', 'good'); },
     }, [
-      el('span', { class: 'build-ico', text: '💾' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('save') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'いま セーブする' }), el('p', { text: 'ふだんは じどうで ほぞんされます' })]),
     ]));
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(askNotify, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '🔔' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('bell') }),
       el('span', { class: 'build-info' }, [
         el('h4', { text: 'おしらせを うけとる' }),
         el('p', { text: 'ごきげんが ななめに なったら おしらせ（PWA通知）' }),
@@ -233,13 +233,13 @@ window.GP = window.GP || {};
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(() => { showTitle(); }, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '🏠' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('house') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'タイトルへ もどる' }), el('p', { text: 'しんこうは ほぞんされます' })]),
     ]));
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(startNew, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '🔄' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('refresh') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'さいしょから' }), el('p', { text: 'セーブデータを けして やりなおす' })]),
     ]));
     body.appendChild(btns);
@@ -335,7 +335,7 @@ window.GP = window.GP || {};
     foot.push({ label: 'さいしょから', cls: 'btn-accent', onClick: () => { shownEnding = ''; setTimeout(startNew, 120); } });
 
     UI.modal({
-      title: win ? '🏆 クリア！' : 'ゲーム しゅうりょう',
+      title: win ? ':trophy: クリア！' : 'ゲーム しゅうりょう',
       body, noClose: true, buttons: foot,
     });
   }
@@ -382,6 +382,7 @@ window.GP = window.GP || {};
     GP.squad.init();
     GP.gacha.init();
     GP.battle.init();
+    GP.icons.fillStatic();
     GP.worldmap.init();
 
     $('#btn-newgame').addEventListener('click', startNew);

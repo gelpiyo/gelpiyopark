@@ -361,6 +361,14 @@ window.GP = window.GP || {};
           st.wipedOnce[f] = true;
           st.dayBonus = (st.dayBonus || 0) + bonus;
           out.push({ fac: f, bonus, again });
+          // すでに 時間ぎれで けっちゃく して いても、リミットが のびたら ゲームは つづく
+          // （ぼうえい戦などで リザルトの ひょうじが あとまわしに なって いる あいだの せめこみ）
+          if (st.ended && st.endedBy === 'time' && st.day < dayLimitNow()) {
+            st.ended = null;
+            st.endedBy = '';
+            st.endedDay = 0;
+            log('タイムリミットが のびた！ しょうぶは まだ つづく！', 'good');
+          }
           log(again
             ? `${D.FACTIONS[f].name}を ふたたび ぜんめつ させた！ タイムリミット +${bonus}日`
             : `${D.FACTIONS[f].name}を ぜんめつ させた！ タイムリミット +${bonus}日`, 'good');

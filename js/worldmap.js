@@ -87,9 +87,7 @@ window.GP = window.GP || {};
       // ちけい アイコン
       ctx.save();
       ctx.globalAlpha = 0.34;
-      ctx.font = '30px system-ui, "Segoe UI Emoji", sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(ter.ico, p.x, p.y - 20);
+      GP.icons.paint(ctx, ter.ico, p.x, p.y - 20, 32);
       ctx.restore();
 
       // ぴよ（もちぬし）
@@ -203,7 +201,7 @@ window.GP = window.GP || {};
       document.createTextNode(t.name),
       el('span', { class: 'owner-chip', style: `background:${f.color};color:${textOn(f.color)}`, text: f.name }),
     ]));
-    box.appendChild(el('p', { class: 'hint', style: 'margin-top:4px', text: ter.ico + ' ' + ter.name + '：' + ter.note }));
+    box.appendChild(el('p', { class: 'hint', style: 'margin-top:4px', html: UI.rich(':' + ter.ico + ': ' + ter.name + '：' + ter.note) }));
 
     const stats = el('div', { class: 'tile-stats' });
     stats.appendChild(el('span', { class: 'tstat', html: 'まもり <b>' + St.tileDefense(selected) + '</b>' }));
@@ -220,14 +218,16 @@ window.GP = window.GP || {};
         class: 'btn btn-primary btn-sm', type: 'button',
         disabled: !St.canPay(cost) ? true : null,
         onclick: () => fortify(selected, cost),
-      }, `まもりを かためる（📦${cost.danbo}）`));
+        html: UI.rich(`まもりを かためる（:danbo:${cost.danbo}）`),
+      }));
     } else if (attackable) {
       const pact = s.owner !== 'none' && st.factions[s.owner] && st.factions[s.owner].pact > 0;
       btns.appendChild(el('button', {
         class: 'btn btn-danger btn-sm', type: 'button',
         disabled: st.genki <= 0 || pact ? true : null,
         onclick: () => confirmAttack(selected),
-      }, st.genki <= 0 ? 'げんきが たりない' : pact ? 'お約束中は せめられない' : `せめこむ（⚡1）`));
+        html: UI.rich(st.genki <= 0 ? 'げんきが たりない' : pact ? 'お約束中は せめられない' : 'せめこむ（:genki:1）'),
+      }));
       if (s.owner !== 'none') {
         btns.appendChild(el('button', {
           class: 'btn btn-ghost btn-sm', type: 'button',
@@ -284,15 +284,15 @@ window.GP = window.GP || {};
       slot.appendChild(UI.piyoEl(u, 'angry'));
       slot.appendChild(el('span', { class: 'slot-info' }, [
         el('span', { class: 'slot-name', text: St.unitName(u) }),
-        el('span', { class: 'slot-meta', text: `Lv${u.lv}　❤${ss.hp} ⚔${ss.atk}` }),
+        el('span', { class: 'slot-meta', html: UI.rich(`Lv${u.lv}　:heart:${ss.hp} :sword:${ss.atk}`) }),
       ]));
       roster.appendChild(slot);
     });
     body.appendChild(roster);
-    if (cheer) body.appendChild(el('p', { class: 'hint', text: '🎉 おうえんの ゲルぴよが かけつけて くれます！' }));
+    if (cheer) body.appendChild(el('p', { class: 'hint', html: UI.rich(':party: おうえんの ゲルぴよが かけつけて くれます！') }));
 
     UI.modal({
-      title: '⚔ せめこむ？',
+      title: ':sword: せめこむ？',
       body,
       buttons: [
         { label: 'やめる', cls: 'btn-ghost' },
@@ -415,7 +415,10 @@ window.GP = window.GP || {};
     St.persist();
     UI.refreshHud();
     UI.rerender();
-    if (st.tiles && St.shares().player === 0) { st.ended = 'lose'; GP.main.showEnding(); }
+    if (st.tiles && St.shares().player === 0) { st.ended = 'lose'; st.endedBy = 'wipeout'; st.endedDay = st.day; }
+    // けっちゃく ずみ（タイムリミットなど）なら ここで リザルトを だす。
+    // あとまわしに すると、けっちゃく に きづかない まま あそべて しまう
+    if (st.ended) { St.persist(); setTimeout(() => GP.main.showEnding(), 400); }
   }
 
   /* =========================================================
@@ -469,13 +472,13 @@ window.GP = window.GP || {};
     const body = el('div');
     body.appendChild(el('h4', {
       style: 'text-align:center;font-size:20px;margin-bottom:8px;color:' + (win ? '#3D9E6A' : '#C05340'),
-      text: win ? 'しょうり！ 🎉' : 'ざんねん…',
+      html: UI.rich(win ? 'しょうり！ :party:' : 'ざんねん…'),
     }));
 
     const row = el('div', { class: 'cost-row' });
     D.RES_ORDER.concat(['kakera']).forEach((k) => {
       if (!gained[k]) return;
-      row.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + gained[k]));
+      row.appendChild(el('span', { class: 'cost', html: GP.icons.res(k) + ' +' + gained[k] }));
     });
     if (row.children.length) {
       body.appendChild(el('h3', { class: 'panel-title', text: 'てにいれた もの' }));
@@ -485,8 +488,8 @@ window.GP = window.GP || {};
 
     if (drop) {
       body.appendChild(el('div', { class: 'panel', style: 'background:#FFF3D0' }, [
-        el('div', { class: 'panel-title', text: '🎁 そうびを ひろった！' }),
-        el('p', { class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px', text: drop.ico + ' ' + drop.name }),
+        el('div', { class: 'panel-title', html: UI.rich(':tabGacha: そうびを ひろった！') }),
+        el('p', { class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px', html: UI.rich(':' + drop.ico + ': ' + drop.name) }),
       ]));
     }
 
@@ -501,7 +504,7 @@ window.GP = window.GP || {};
           el('span', { class: 'log-day', text: '↑' }), el('span', { class: 'log-txt', text: txt }),
         ]));
       });
-      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', text: '🌱 せいちょう' }));
+      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', html: UI.rich(':hiroba: せいちょう') }));
       body.appendChild(ul);
     }
 
@@ -535,7 +538,7 @@ window.GP = window.GP || {};
     body.appendChild(head);
 
     // おくりもの
-    body.appendChild(el('h3', { class: 'panel-title', text: '🎁 おくりものを する' }));
+    body.appendChild(el('h3', { class: 'panel-title', html: UI.rich(':tabGacha: おくりものを する') }));
     const gifts = el('div', { class: 'build-list' });
     D.GIFTS.forEach((g) => {
       const ok = St.canPay(g.cost);
@@ -550,7 +553,7 @@ window.GP = window.GP || {};
           St.persist(); UI.closeModal(); openDiplomacy(facId); render(); UI.refreshHud();
         },
       }, [
-        el('span', { class: 'build-ico', text: g.ico }),
+        el('span', { class: 'build-ico', html: GP.icons.svg(g.ico) }),
         el('span', { class: 'build-info' }, [
           el('h4', { text: g.name }),
           el('p', { text: 'なかよし度 およそ +' + g.up }),
@@ -561,11 +564,11 @@ window.GP = window.GP || {};
     body.appendChild(gifts);
 
     // おねがい
-    body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:12px', text: '🤝 おねがいごと' }));
+    body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:12px', html: UI.rich(':handshake: おねがいごと') }));
     const acts = el('div', { class: 'build-list' });
 
     acts.appendChild(actBtn({
-      ico: '🤙', name: 'お約束（平和条約）',
+      ico: 'promise', name: 'お約束（平和条約）',
       desc: D.DIPLO.pactDays + '日 おたがい せめこまない',
       need: D.DIPLO.pactNeed, fav: fs.fav,
       onDo: () => {
@@ -576,7 +579,7 @@ window.GP = window.GP || {};
       },
     }));
     acts.appendChild(actBtn({
-      ico: '📣', name: 'おうえんを たのむ',
+      ico: 'megaphone', name: 'おうえんを たのむ',
       desc: 'つぎの この あいてとの バトルに なかまが 1ぴき くわわる',
       need: D.DIPLO.cheerNeed, fav: fs.fav,
       onDo: () => {
@@ -587,7 +590,7 @@ window.GP = window.GP || {};
       },
     }));
     acts.appendChild(actBtn({
-      ico: '🏳', name: '区画を ゆずって もらう',
+      ico: 'flag', name: '区画を ゆずって もらう',
       desc: 'いちばん まもりの よわい 区画を ゆずって もらう',
       need: D.DIPLO.cedeNeed, fav: fs.fav,
       onDo: () => {
@@ -615,7 +618,7 @@ window.GP = window.GP || {};
           St.persist(); UI.closeModal(); render(); UI.refreshHud();
         },
       }, [
-        el('span', { class: 'build-ico', text: cfg.ico }),
+        el('span', { class: 'build-ico', html: GP.icons.svg(cfg.ico) }),
         el('span', { class: 'build-info' }, [
           el('h4', { text: cfg.name }),
           el('p', { text: cfg.desc }),

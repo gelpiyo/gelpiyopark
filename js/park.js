@@ -30,10 +30,10 @@ window.GP = window.GP || {};
     const keys = D.RES_ORDER.filter((k) => inc[k] > 0);
     if (!keys.length) box.appendChild(el('span', { class: 'inc' }, 'しゅうにゅう なし'));
     keys.forEach((k) => {
-      box.appendChild(el('span', { class: 'inc up' }, D.RES[k].ico + '+' + inc[k]));
+      box.appendChild(el('span', { class: 'inc up', html: GP.icons.res(k) + '+' + inc[k] }));
     });
     if (St.isStriking()) {
-      box.appendChild(el('span', { class: 'inc', style: 'color:#E4614F' }, '😖ストライキ中'));
+      box.appendChild(el('span', { class: 'inc', style: 'color:#E4614F', html: UI.rich(':face0:ストライキ中') }));
     }
 
     renderGrid();
@@ -59,7 +59,7 @@ window.GP = window.GP || {};
           class: 'plot is-locked', type: 'button',
           onclick: () => UI.toast('なわばりを ひろげると あきちが ふえるよ', ''),
         }, [
-          el('span', { class: 'plot-ico', text: '🔒' }),
+          el('span', { class: 'plot-ico', html: GP.icons.svg('lock') }),
           el('span', { class: 'plot-name', text: 'あきち' }),
         ]));
         continue;
@@ -75,7 +75,7 @@ window.GP = window.GP || {};
       const f = D.FAC_BY_ID[p.fac];
       const b = el('button', { class: 'plot is-built', type: 'button', onclick: () => openPlot(i) }, [
         el('span', { class: 'plot-lv', text: 'Lv' + p.lv }),
-        el('span', { class: 'plot-ico', text: f.ico }),
+        el('span', { class: 'plot-ico', html: GP.icons.svg(f.ico) }),
         el('span', { class: 'plot-name', text: f.short || f.name }),
       ]);
       // あそんでいる ぴよ
@@ -131,7 +131,7 @@ window.GP = window.GP || {};
         class: 'build-item', type: 'button', disabled: ok ? null : true,
         onclick: () => doBuild(idx, f.id),
       }, [
-        el('span', { class: 'build-ico', text: f.ico }),
+        el('span', { class: 'build-ico', html: GP.icons.svg(f.ico) }),
         el('span', { class: 'build-info' }, [
           el('h4', { text: f.name }),
           el('p', { text: f.desc }),
@@ -154,7 +154,7 @@ window.GP = window.GP || {};
     st.kigen = U.clamp(Math.round(St.kigenTarget() + st.kigenMod), 0, 100);
     St.log(D.FAC_BY_ID[facId].name + 'が かんせい！ みんな よろこんでいる。', 'good');
     UI.closeModal();
-    UI.toast(D.FAC_BY_ID[facId].ico + ' ' + D.FAC_BY_ID[facId].name + 'を たてた！', 'good');
+    UI.toast(':' + D.FAC_BY_ID[facId].ico + ': ' + D.FAC_BY_ID[facId].name + 'を たてた！', 'good');
     St.persist();
     render(); UI.refreshHud();
   }
@@ -197,7 +197,7 @@ window.GP = window.GP || {};
     Object.keys(spent).forEach((k) => { refund[k] = Math.floor(spent[k] * 0.5); });
 
     UI.modal({
-      title: f.ico + ' ' + f.name,
+      title: ':' + f.ico + ': ' + f.name,
       body,
       buttons: [
         { label: 'とりこわす', cls: 'btn-ghost', onClick: () => confirmRemove(idx, refund) },
@@ -278,12 +278,12 @@ window.GP = window.GP || {};
 
     // イベント
     if (rep.event && rep.event.id !== 'none') {
-      const ico = rep.event.kind === 'good' ? '🎉' : rep.event.kind === 'bad' ? '💦' : '🍃';
+      const ico = rep.event.kind === 'good' ? 'party' : rep.event.kind === 'bad' ? 'drop' : 'leaf';
       body.appendChild(el('div', {
         class: 'panel', style: 'margin-top:0;background:' +
           (rep.event.kind === 'bad' ? '#FFECE8' : '#EFFBEA'),
       }, [
-        el('div', { class: 'panel-title', text: ico + ' きょうの できごと' }),
+        el('div', { class: 'panel-title', html: UI.rich(':' + ico + ': きょうの できごと') }),
         el('p', { class: 'hint', style: 'margin:0;font-size:13px;color:#4A3A2C', text: rep.event.text }),
       ]));
     }
@@ -293,10 +293,10 @@ window.GP = window.GP || {};
     const incBox = el('div', { class: 'cost-row' });
     if (!incKeys.length) incBox.appendChild(el('span', { class: 'cost' }, 'なし'));
     incKeys.forEach((k) => {
-      incBox.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + rep.income[k]));
+      incBox.appendChild(el('span', { class: 'cost', html: GP.icons.res(k) + ' +' + rep.income[k] }));
     });
     body.appendChild(el('div', { class: 'panel', style: 'margin-top:8px' }, [
-      el('div', { class: 'panel-title', text: '📥 きょうの しゅうかく' }), incBox,
+      el('div', { class: 'panel-title', html: UI.rich(':inbox: きょうの しゅうかく') }), incBox,
       el('p', {
         class: 'hint', style: 'margin-bottom:0',
         text: 'ごきげん度 ' + rep.kigenBefore + ' → ' + st.kigen +
@@ -320,7 +320,7 @@ window.GP = window.GP || {};
       if (rep.pendingAttack) {
         const f = D.FACTIONS[rep.pendingAttack.fac];
         ul.appendChild(el('li', { class: 'bad' }, [
-          el('span', { class: 'log-day', text: '⚔' }),
+          el('span', { class: 'log-day', html: GP.icons.svg('sword') }),
           el('span', {
             class: 'log-txt',
             text: f.name + 'が「' + St.tileById(rep.pendingAttack.tile).name + '」に せめこんできた！',
@@ -328,7 +328,7 @@ window.GP = window.GP || {};
         ]));
       }
       body.appendChild(el('div', { class: 'panel', style: 'margin-bottom:0' }, [
-        el('div', { class: 'panel-title', text: '🗺 ライバルの うごき' }), ul,
+        el('div', { class: 'panel-title', html: UI.rich(':tabMap: ライバルの うごき') }), ul,
       ]));
     }
 

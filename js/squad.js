@@ -66,7 +66,7 @@ window.GP = window.GP || {};
         class: 'tac' + (st.tactic === t.id ? ' is-on' : ''), type: 'button',
         onclick: () => { st.tactic = t.id; St.persist(); render(); },
       }, [
-        el('span', { class: 'tac-ico', text: t.ico }),
+        el('span', { class: 'tac-ico', html: GP.icons.svg(t.ico) }),
         el('span', { text: t.name }),
       ]));
     });
@@ -124,7 +124,7 @@ window.GP = window.GP || {};
         onclick: () => openDetail(u),
       }, [
         el('span', { class: 'pcard-rar', style: 'color:' + rar.color, text: rar.name }),
-        inTeam ? el('span', { class: 'pcard-team', text: '⚔' }) : null,
+        inTeam ? el('span', { class: 'pcard-team', html: GP.icons.svg('sword') }) : null,
       ]);
       card.appendChild(UI.piyoEl(u, 'normal'));
       card.appendChild(el('span', { class: 'pcard-name', text: St.unitName(u) }));
@@ -156,7 +156,7 @@ window.GP = window.GP || {};
       } }, [el('span', { class: 'pcard-rar', style: 'color:' + rar.color, text: rar.name })]);
       card.appendChild(UI.piyoEl(u, 'normal'));
       card.appendChild(el('span', { class: 'pcard-name', text: St.unitName(u) }));
-      card.appendChild(el('span', { class: 'pcard-lv', text: `Lv${u.lv}・${D.ROLES[s.role].short}　⚔${St.unitPower(u)}` }));
+      card.appendChild(el('span', { class: 'pcard-lv', html: UI.rich(`Lv${u.lv}・${D.ROLES[s.role].short}　:sword:${St.unitPower(u)}`) }));
       grid.appendChild(card);
     });
     UI.modal({ title: 'なかまを えらぶ', body: grid });
@@ -234,7 +234,7 @@ window.GP = window.GP || {};
             St.persist(); UI.closeModal(); openDetail(u); render();
           },
         }, [
-          el('span', { text: e.ico + ' ' + e.name + (free > 1 || (!on && free > 0) ? ` ×${free}` : '') }),
+          el('span', { html: UI.rich(':' + e.ico + ': ' + e.name + (free > 1 || (!on && free > 0) ? ` ×${free}` : '')) }),
           el('small', { text: mods + (e.note ? '／' + e.note : '') }),
         ]));
       });
@@ -245,7 +245,7 @@ window.GP = window.GP || {};
       const T = D.RULES.train;
       body.appendChild(el('p', {
         class: 'hint', style: 'margin-top:0',
-        text: `もちもの 🧩${st.res.kakera}　🍪${Math.floor(st.res.snack)}　／　かけら${T.kakera}こ＋おやつ${T.snack}こ で けいけんち +${T.xp}`,
+        html: UI.rich(`もちもの :kakera:${st.res.kakera}　:snack:${Math.floor(st.res.snack)}　／　かけら${T.kakera}こ＋おやつ${T.snack}こ で けいけんち +${T.xp}`),
       }));
       const trainRow = el('div', { class: 'equip-row' });
       [1, 5, 20].forEach((n) => {
@@ -255,7 +255,7 @@ window.GP = window.GP || {};
           disabled: !St.canPay(need) || u.lv >= D.RULES.lvMax ? true : null,
           onclick: () => train(u, n),
         }, [
-          el('span', { text: `🧩${need.kakera} ＋ 🍪${need.snack}` }),
+          el('span', { html: UI.rich(`:kakera:${need.kakera} ＋ :snack:${need.snack}`) }),
           el('small', { text: `けいけんち +${n * T.xp}` }),
         ]));
       });
@@ -329,7 +329,7 @@ window.GP = window.GP || {};
         class: 'panel',
         style: 'background:' + (e.evo.kind === 'bad' ? '#FFECE8' : e.evo.kind === 'rare' ? '#FFF3D0' : '#EFFBEA'),
       }, [
-        el('div', { class: 'panel-title', text: e.evo.kind === 'rare' ? '✨ とくべつな せいちょう！' : '🌱 せいちょう！' }),
+        el('div', { class: 'panel-title', html: UI.rich(e.evo.kind === 'rare' ? ':sparkle: とくべつな せいちょう！' : ':hiroba: せいちょう！') }),
         el('p', { class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px', text: e.evo.msg }),
       ]));
     });
@@ -345,7 +345,7 @@ window.GP = window.GP || {};
       title: 'にがす？',
       body: el('div', {}, [
         el('p', { class: 'hint', text: St.unitName(u) + 'を おうちに かえします。なかよしのかけらに なります。' }),
-        el('div', { class: 'cost-row' }, [el('span', { class: 'cost' }, '🧩 +' + n)]),
+        el('div', { class: 'cost-row' }, [el('span', { class: 'cost', html: UI.rich(':kakera: +' + n) })]),
       ]),
       buttons: [
         { label: 'やめる', cls: 'btn-ghost' },
@@ -355,7 +355,7 @@ window.GP = window.GP || {};
             st.team = st.team.filter((x) => x !== u.uid);
             st.res.kakera += n;
             St.persist(); render(); UI.refreshHud();
-            UI.toast('またね！ 🧩+' + n, '');
+            UI.toast('またね！ :kakera:+' + n, '');
           },
         },
       ],

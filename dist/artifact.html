@@ -158,7 +158,16 @@ ul{margin:0;padding:0;list-style:none}
 .hud-res{gap:4px}
 .res{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;
   background:#fff;border-radius:10px;padding:4px 2px;box-shadow:0 2px 0 var(--line);min-width:0}
-.res-ico{font-size:13px}
+.res-ico{font-size:15px;display:flex}
+/* ベクターアイコン（icons.js）。文字の おおきさに あわせる */
+svg.ico{width:1.2em;height:1.2em;display:inline-block;vertical-align:-0.25em;flex:0 0 auto}
+.ico-wrap{display:inline-flex;line-height:0}
+.res-ico svg.ico,.tab-ico svg.ico,.plot-ico svg.ico,.build-ico svg.ico,.tac-ico svg.ico,.kigen-face svg.ico{width:1em;height:1em;vertical-align:0}
+.tab-ico svg.ico{width:1.25em;height:1.25em}
+.plot-ico svg.ico{width:1.35em;height:1.35em}
+.tac-ico svg.ico{width:1.35em;height:1.35em}
+.kigen-face svg.ico{width:1.15em;height:1.15em}
+.tac.is-on .tac-ico svg.ico{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff)}
 .res-num{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
 .res-genki{background:#FFF6D8}
 .res.is-bump{animation:bump .45s ease}
@@ -510,6 +519,7 @@ canvas.piyo3d{display:block;margin:0 auto}
   .title-piyos{height:100px}
   .logo-main{font-size:38px}
 }
+.btn small .ico-wrap,.btn .ico-wrap{display:inline-flex;vertical-align:-0.2em}
 
 </style>
 <!-- ============ タイトル ============ -->
@@ -538,18 +548,18 @@ canvas.piyo3d{display:block;margin:0 auto}
     <div class="hud-row hud-top">
       <div class="hud-day"><span class="hud-day-label">DAY</span><strong id="hud-day">1</strong></div>
       <div class="kigen-wrap" id="kigen-wrap">
-        <div class="kigen-face" id="kigen-face">😊</div>
+        <div class="kigen-face" id="kigen-face" data-icon="face3"></div>
         <div class="kigen-bar"><div class="kigen-fill" id="kigen-fill"></div></div>
         <div class="kigen-val"><span id="kigen-val">50</span></div>
       </div>
       <button class="hud-menu" id="btn-menu" type="button" aria-label="メニュー">☰</button>
     </div>
     <div class="hud-row hud-res" id="hud-res">
-      <div class="res" data-res="danbo"><span class="res-ico">📦</span><span class="res-num" id="res-danbo">0</span></div>
-      <div class="res" data-res="juice"><span class="res-ico">🥤</span><span class="res-num" id="res-juice">0</span></div>
-      <div class="res" data-res="snack"><span class="res-ico">🍪</span><span class="res-num" id="res-snack">0</span></div>
-      <div class="res" data-res="menko"><span class="res-ico">🎴</span><span class="res-num" id="res-menko">0</span></div>
-      <div class="res res-genki" data-res="genki"><span class="res-ico">⚡</span><span class="res-num" id="res-genki">3</span></div>
+      <div class="res" data-res="danbo"><span class="res-ico" data-icon="danbo"></span><span class="res-num" id="res-danbo">0</span></div>
+      <div class="res" data-res="juice"><span class="res-ico" data-icon="juice"></span><span class="res-num" id="res-juice">0</span></div>
+      <div class="res" data-res="snack"><span class="res-ico" data-icon="snack"></span><span class="res-num" id="res-snack">0</span></div>
+      <div class="res" data-res="menko"><span class="res-ico" data-icon="menko"></span><span class="res-num" id="res-menko">0</span></div>
+      <div class="res res-genki" data-res="genki"><span class="res-ico" data-icon="genki"></span><span class="res-num" id="res-genki">3</span></div>
     </div>
   </header>
 
@@ -645,10 +655,10 @@ canvas.piyo3d{display:block;margin:0 auto}
             <span>おさんぽ スカウト</span><small id="free-sub">1日1回 むりょう</small>
           </button>
           <button class="btn btn-accent btn-block" id="btn-scout1" type="button">
-            <span>1かい スカウト</span><small>🎴 5</small>
+            <span>1かい スカウト</span><small><span class="ico-wrap" data-icon="menko"></span> 5</small>
           </button>
           <button class="btn btn-primary btn-block" id="btn-scout10" type="button">
-            <span>10れん スカウト</span><small>🎴 45／R以上 1体かくてい</small>
+            <span>10れん スカウト</span><small><span class="ico-wrap" data-icon="menko"></span> 45／R以上 1体かくてい</small>
           </button>
         </div>
         <div class="panel">
@@ -658,7 +668,7 @@ canvas.piyo3d{display:block;margin:0 auto}
             <li><b class="rar-r">R</b><span>26%</span>バランスが いい</li>
             <li><b class="rar-n">N</b><span>70%</span>かずが たより</li>
           </ul>
-          <p class="hint">おなじ ぴよが かぶったら「なかよしのかけら 🧩」に なります（育成に つかえる）</p>
+          <p class="hint">おなじ ぴよが かぶったら「なかよしのかけら <span class="ico-wrap" data-icon="kakera"></span>」に なります（育成に つかえる）</p>
         </div>
       </div>
     </section>
@@ -666,10 +676,10 @@ canvas.piyo3d{display:block;margin:0 auto}
   </main>
 
   <nav class="tabbar" id="tabbar">
-    <button class="tab is-on" data-tab="park" type="button"><span class="tab-ico">🏞</span><span class="tab-txt">こうえん</span></button>
-    <button class="tab" data-tab="map" type="button"><span class="tab-ico">🗺</span><span class="tab-txt">なわばり</span></button>
-    <button class="tab" data-tab="squad" type="button"><span class="tab-ico">🐣</span><span class="tab-txt">なかま</span><span class="tab-badge" id="badge-squad" hidden></span></button>
-    <button class="tab" data-tab="gacha" type="button"><span class="tab-ico">🎁</span><span class="tab-txt">スカウト</span><span class="tab-badge" id="badge-gacha" hidden></span></button>
+    <button class="tab is-on" data-tab="park" type="button"><span class="tab-ico" data-icon="tabPark"></span><span class="tab-txt">こうえん</span></button>
+    <button class="tab" data-tab="map" type="button"><span class="tab-ico" data-icon="tabMap"></span><span class="tab-txt">なわばり</span></button>
+    <button class="tab" data-tab="squad" type="button"><span class="tab-ico" data-icon="tabSquad"></span><span class="tab-txt">なかま</span><span class="tab-badge" id="badge-squad" hidden></span></button>
+    <button class="tab" data-tab="gacha" type="button"><span class="tab-ico" data-icon="tabGacha"></span><span class="tab-txt">スカウト</span><span class="tab-badge" id="badge-gacha" hidden></span></button>
   </nav>
 </div>
 
@@ -873,11 +883,11 @@ window.GP = window.GP || {};
      リソース
      --------------------------------------------------------- */
   const RES = {
-    danbo: { id: 'danbo', name: 'ダンボール', ico: '📦' },
-    juice: { id: 'juice', name: 'ジュース缶', ico: '🥤' },
-    snack: { id: 'snack', name: 'おやつ', ico: '🍪' },
-    menko: { id: 'menko', name: 'レアメンコ', ico: '🎴' },
-    kakera: { id: 'kakera', name: 'なかよしのかけら', ico: '🧩' },
+    danbo: { id: 'danbo', name: 'ダンボール', ico: 'danbo' },
+    juice: { id: 'juice', name: 'ジュース缶', ico: 'juice' },
+    snack: { id: 'snack', name: 'おやつ', ico: 'snack' },
+    menko: { id: 'menko', name: 'レアメンコ', ico: 'menko' },
+    kakera: { id: 'kakera', name: 'なかよしのかけら', ico: 'kakera' },
   };
   const RES_ORDER = ['danbo', 'juice', 'snack', 'menko'];
 
@@ -890,54 +900,54 @@ window.GP = window.GP || {};
      bonus  : 特殊効果 { teamCap:1 } / { roster:2 } / { def:2 }
      --------------------------------------------------------- */
   const FACILITIES = [
-    { id: 'sunaba', name: 'すなば', ico: '🏖', tag: 'せいさん',
+    { id: 'sunaba', name: 'すなば', ico: 'sunaba', tag: 'せいさん',
       desc: 'ダンボールの きれはしが よく みつかる すなの ひろば。',
       cost: { danbo: 10 }, yield: { danbo: 2 }, kigen: 2, cap: 2 },
 
-    { id: 'swing', name: 'ブランコ', ico: '🎠', tag: 'せいさん',
+    { id: 'swing', name: 'ブランコ', ico: 'swing', tag: 'せいさん',
       desc: 'こいで あそぶと のどが かわく。ジュース缶が あつまる。',
       cost: { danbo: 14, juice: 4 }, yield: { juice: 2 }, kigen: 3, cap: 2 },
 
-    { id: 'fountain', name: 'みずのみば', short: 'みずのみ', ico: '⛲', tag: 'せいさん',
+    { id: 'fountain', name: 'みずのみば', short: 'みずのみ', ico: 'fountain', tag: 'せいさん',
       desc: 'みんなの きゅうすいスポット。ジュース缶の かいしゅう率アップ。',
       cost: { danbo: 12, juice: 8 }, yield: { juice: 3 }, kigen: 3, cap: 1 },
 
-    { id: 'gym', name: 'ジャングルジム', short: 'ジム', ico: '🧗', tag: 'せいさん',
+    { id: 'gym', name: 'ジャングルジム', short: 'ジム', ico: 'gym', tag: 'せいさん',
       desc: 'てっぺんから ざいりょうが よく みえる。ダンボール産出 大。',
       cost: { danbo: 34 }, yield: { danbo: 3 }, kigen: 4, cap: 3 },
 
-    { id: 'candy', name: 'だがしや', ico: '🍬', tag: 'せいさん',
+    { id: 'candy', name: 'だがしや', ico: 'candy', tag: 'せいさん',
       desc: 'おやつが てにはいる。こうしょう（がいこう）に かかせない。',
       cost: { danbo: 24, juice: 14 }, yield: { snack: 3 }, kigen: 4, cap: 3 },
 
-    { id: 'slide', name: 'きょだいすべりだい', short: 'すべりだい', ico: '🛝', tag: 'ごきげん',
+    { id: 'slide', name: 'きょだいすべりだい', short: 'すべりだい', ico: 'slide', tag: 'ごきげん',
       desc: 'こうえん いちの 大にんき ゆうぐ。ごきげん度が ぐんと あがる。',
       cost: { danbo: 40, juice: 20 }, yield: { juice: 4 }, kigen: 9, cap: 4 },
 
-    { id: 'base', name: 'ひみつきち', ico: '🏕', tag: 'とくしゅ',
+    { id: 'base', name: 'ひみつきち', ico: 'base', tag: 'とくしゅ',
       desc: 'さくせん会議の ばしょ。出撃メンバーの わくが ふえる。',
       cost: { danbo: 55, juice: 26, snack: 8 }, yield: { danbo: 3 }, kigen: 5, cap: 4,
       bonus: { teamCap: 1 } },
 
-    { id: 'house', name: 'ぴよハウス', ico: '🏠', tag: 'とくしゅ',
+    { id: 'house', name: 'ぴよハウス', ico: 'house', tag: 'とくしゅ',
       desc: 'なかまが とまれる おうち。もてる なかまの 上限が ふえる。',
       cost: { danbo: 28, juice: 10, snack: 4 }, yield: {}, kigen: 2, cap: 2,
       bonus: { roster: 4 } },
 
-    { id: 'craft', name: 'こうさくしつ', short: 'こうさく', ico: '🧰', tag: 'とくしゅ',
+    { id: 'craft', name: 'こうさくしつ', short: 'こうさく', ico: 'craft', tag: 'とくしゅ',
       desc: 'ダンボールを けずって メンコを つくる。スカウトの もとで。',
       cost: { danbo: 45, juice: 18, snack: 12 }, yield: { menko: 1 }, kigen: 1, cap: 1 },
 
-    { id: 'fort', name: 'すなやま とりで', short: 'とりで', ico: '🏰', tag: 'とくしゅ',
+    { id: 'fort', name: 'すなやま とりで', short: 'とりで', ico: 'fort', tag: 'とくしゅ',
       desc: 'ホーム区画の まもりを かためる。しゅうげきに つよくなる。',
       cost: { danbo: 36, juice: 12 }, yield: {}, kigen: 1, cap: 1,
       bonus: { def: 2 } },
 
-    { id: 'bench', name: 'ベンチ', ico: '🪑', tag: 'ごきげん',
+    { id: 'bench', name: 'ベンチ', ico: 'bench', tag: 'ごきげん',
       desc: 'ひとやすみ どころ。ちいさいけれど ごきげんに ひびく。',
       cost: { danbo: 8 }, yield: {}, kigen: 3, cap: 2 },
 
-    { id: 'flower', name: 'はなだん', ico: '🌷', tag: 'ごきげん',
+    { id: 'flower', name: 'はなだん', ico: 'flower', tag: 'ごきげん',
       desc: 'みばえが よくなって みんな ごきげん。',
       cost: { danbo: 10, juice: 4 }, yield: {}, kigen: 5, cap: 0 },
   ];
@@ -971,22 +981,22 @@ window.GP = window.GP || {};
      ぴよの やくわり（タイプ）
      --------------------------------------------------------- */
   const ROLES = {
-    rush:  { id: 'rush',  name: 'そっこう',   short: '速', ico: '🏃', color: '#F0844A',
+    rush:  { id: 'rush',  name: 'そっこう',   short: '速', ico: 'rush', color: '#F0844A',
              desc: 'すばしっこい。まっさきに つっこむ。えんきょりに つよい。',
              base: { hp: 56, atk: 14, def: 4, rng: 1, mov: 3, spd: 12 } },
-    range: { id: 'range', name: 'えんきょり', short: '遠', ico: '💦', color: '#4EA8DE',
+    range: { id: 'range', name: 'えんきょり', short: '遠', ico: 'range', color: '#4EA8DE',
              desc: '水鉄砲で とおくから ねらう。ぼうぎょに つよい。',
              base: { hp: 44, atk: 15, def: 3, rng: 3, mov: 2, spd: 10 } },
-    guard: { id: 'guard', name: 'ぼうぎょ',   short: '盾', ico: '🛡', color: '#8C7A5B',
+    guard: { id: 'guard', name: 'ぼうぎょ',   short: '盾', ico: 'shield', color: '#8C7A5B',
              desc: 'ダンボール盾で うけとめる。そっこうに つよい。',
              base: { hp: 88, atk: 9,  def: 10, rng: 1, mov: 2, spd: 7 } },
-    brain: { id: 'brain', name: 'さくせん',   short: '策', ico: '🧠', color: '#8B6FD6',
+    brain: { id: 'brain', name: 'さくせん',   short: '策', ico: 'brain', color: '#8B6FD6',
              desc: 'なかまを おうえん・かいふくする しえん やく。',
              base: { hp: 48, atk: 8,  def: 5, rng: 2, mov: 2, spd: 11 } },
-    boss:  { id: 'boss',  name: 'たいしょう', short: '将', ico: '👑', color: '#E4614F',
+    boss:  { id: 'boss',  name: 'たいしょう', short: '将', ico: 'crown', color: '#E4614F',
              desc: 'よわてんが ない ばんのう タイプ。まわりを つよくする。',
              base: { hp: 74, atk: 16, def: 7, rng: 1, mov: 2, spd: 9 } },
-    trick: { id: 'trick', name: 'おじゃま',   short: '妨', ico: '😜', color: '#57C785',
+    trick: { id: 'trick', name: 'おじゃま',   short: '妨', ico: 'trick', color: '#57C785',
              desc: 'あいての ちからを さげる いたずら やく。',
              base: { hp: 52, atk: 10, def: 5, rng: 2, mov: 3, spd: 13 } },
   };
@@ -1056,16 +1066,16 @@ window.GP = window.GP || {};
      そうび
      --------------------------------------------------------- */
   const EQUIPS = [
-    { id: 'straw',   name: '麦わら帽子',       ico: '👒', mod: { def: 2 },                    note: 'ごきげん +1' , kigen: 1 },
-    { id: 'net',     name: '虫取り網',         ico: '🥅', mod: { atk: 3 } },
-    { id: 'randsel', name: 'ランドセル',       ico: '🎒', mod: { hp: 16, def: 2 } },
-    { id: 'gun',     name: '水鉄砲',           ico: '🔫', mod: { atk: 4 },                    note: 'えんきょりなら しゃてい +1', special: 'rangeUp' },
-    { id: 'shield',  name: 'ダンボール盾',     ico: '🛡', mod: { def: 6, mov: -1 } },
-    { id: 'boots',   name: 'ながぐつ',         ico: '🥾', mod: { mov: 1, spd: 2 },            note: 'みずたまりを むし', special: 'ignoreWater' },
-    { id: 'goggle',  name: 'すいちゅうメガネ', ico: '🥽', mod: { spd: 3, atk: 1 } },
-    { id: 'towel',   name: 'まきタオル',       ico: '🧣', mod: { hp: 14 } },
-    { id: 'whistle', name: 'ホイッスル',       ico: '📣', mod: { spd: 4 },                    note: 'みかた ぜんいん こうげき +1', special: 'aura' },
-    { id: 'crown',   name: 'きんのかんむり',   ico: '👑', mod: { hp: 12, atk: 3, def: 3 } },
+    { id: 'straw',   name: '麦わら帽子',       ico: 'straw', mod: { def: 2 },                    note: 'ごきげん +1' , kigen: 1 },
+    { id: 'net',     name: '虫取り網',         ico: 'net', mod: { atk: 3 } },
+    { id: 'randsel', name: 'ランドセル',       ico: 'randsel', mod: { hp: 16, def: 2 } },
+    { id: 'gun',     name: '水鉄砲',           ico: 'gun', mod: { atk: 4 },                    note: 'えんきょりなら しゃてい +1', special: 'rangeUp' },
+    { id: 'shield',  name: 'ダンボール盾',     ico: 'shield', mod: { def: 6, mov: -1 } },
+    { id: 'boots',   name: 'ながぐつ',         ico: 'boots', mod: { mov: 1, spd: 2 },            note: 'みずたまりを むし', special: 'ignoreWater' },
+    { id: 'goggle',  name: 'すいちゅうメガネ', ico: 'goggle', mod: { spd: 3, atk: 1 } },
+    { id: 'towel',   name: 'まきタオル',       ico: 'towel', mod: { hp: 14 } },
+    { id: 'whistle', name: 'ホイッスル',       ico: 'whistle', mod: { spd: 4 },                    note: 'みかた ぜんいん こうげき +1', special: 'aura' },
+    { id: 'crown',   name: 'きんのかんむり',   ico: 'crown', mod: { hp: 12, atk: 3, def: 3 } },
   ];
   const EQUIP_BY_ID = {};
   EQUIPS.forEach((e) => { EQUIP_BY_ID[e.id] = e; });
@@ -1111,15 +1121,15 @@ window.GP = window.GP || {};
      地形
      --------------------------------------------------------- */
   const TERRAIN = {
-    hiroba:  { id: 'hiroba',  name: 'ひろば',   ico: '🌱', def: 0, yield: { danbo: 1, juice: 1 },
+    hiroba:  { id: 'hiroba',  name: 'ひろば',   ico: 'hiroba', def: 0, yield: { danbo: 1, juice: 1 },
                fill: '#B7E3A0', obst: 'none',  note: 'さえぎる ものが ない ひらけた ばしょ。' },
-    sunaba:  { id: 'sunaba',  name: 'すなば',   ico: '🏖', def: 1, yield: { danbo: 3 },
+    sunaba:  { id: 'sunaba',  name: 'すなば',   ico: 'sunaba', def: 1, yield: { danbo: 3 },
                fill: '#F2DFAE', obst: 'sand',  note: 'すなやまが あって うごきにくい。' },
-    ike:     { id: 'ike',     name: 'いけ',     ico: '💧', def: 3, yield: { juice: 4 },
+    ike:     { id: 'ike',     name: 'いけ',     ico: 'ike', def: 3, yield: { juice: 4 },
                fill: '#A8DCEF', obst: 'water', note: 'みずたまりだらけ。まもりが かたい。' },
-    kodachi: { id: 'kodachi', name: 'こだち',   ico: '🌳', def: 2, yield: { snack: 3, danbo: 1 },
+    kodachi: { id: 'kodachi', name: 'こだち',   ico: 'kodachi', def: 2, yield: { snack: 3, danbo: 1 },
                fill: '#93CE8C', obst: 'tree',  note: 'きが しげって えんきょりが とどきにくい。' },
-    oka:     { id: 'oka',     name: 'おかし山', ico: '⛰', def: 2, yield: { snack: 2, menko: 1 },
+    oka:     { id: 'oka',     name: 'おかし山', ico: 'oka', def: 2, yield: { snack: 2, menko: 1 },
                fill: '#E8C89A', obst: 'gym',   note: 'たかい ばしょ。メンコが ひろえる。' },
   };
 
@@ -1153,13 +1163,13 @@ window.GP = window.GP || {};
      さくせん（バトル方針）
      --------------------------------------------------------- */
   const TACTICS = [
-    { id: 'charge',  name: 'とつげき', ico: '⚡',
+    { id: 'charge',  name: 'とつげき', ico: 'genki',
       desc: 'いきおいよく つっこむ。こうげき+12% ／ ぼうぎょ-15% ／ うごき+1',
       mod: { atk: 1.12, def: 0.85, mov: 1 }, target: 'near' },
-    { id: 'defend',  name: 'まもり',   ico: '🛡',
+    { id: 'defend',  name: 'まもり',   ico: 'shield',
       desc: 'かたまって まもる。ぼうぎょ+25% ／ こうげき-8% ／ うごき-1',
       mod: { atk: 0.92, def: 1.25, mov: -1 }, target: 'near' },
-    { id: 'surround',name: 'とりかこみ', ico: '🎯',
+    { id: 'surround',name: 'とりかこみ', ico: 'surround',
       desc: 'よわい あいてから ねらう。すばやさ+3 ／ こうげき+4%',
       mod: { atk: 1.04, def: 1.0, spd: 3 }, target: 'weak' },
   ];
@@ -1168,9 +1178,9 @@ window.GP = window.GP || {};
      こうしょう（がいこう）
      --------------------------------------------------------- */
   const GIFTS = [
-    { id: 'juice', name: '高級ジュース', ico: '🥤', cost: { juice: 18 },  up: 9 },
-    { id: 'snack', name: '高級おやつ',   ico: '🍪', cost: { snack: 12 },  up: 14 },
-    { id: 'menko', name: 'レアメンコ',   ico: '🎴', cost: { menko: 3 },   up: 26 },
+    { id: 'juice', name: '高級ジュース', ico: 'juice', cost: { juice: 18 },  up: 9 },
+    { id: 'snack', name: '高級おやつ',   ico: 'snack', cost: { snack: 12 },  up: 14 },
+    { id: 'menko', name: 'レアメンコ',   ico: 'menko', cost: { menko: 3 },   up: 26 },
   ];
   const DIPLO = {
     pactNeed: 50,   // 平和条約（お約束）
@@ -1239,6 +1249,576 @@ window.GP = window.GP || {};
     FACTIONS, RIVALS, TERRAIN, TILES,
     TACTICS, GIFTS, DIPLO, EVENTS, RULES,
   };
+})(window.GP);
+
+/* ===== js/icons.js ===== */
+/* =========================================================
+   icons.js — ゲーム内アイコンの ベクター定義
+
+   絵文字は 端末の 絵文字フォント しだいで 見た目が かわり、
+   あたらしい 絵文字は ふるい 端末で でない（豆腐に なる）ため、
+   アイコンは すべて じぶんで えがく。
+
+   ・ひとつの 定義（32x32）から SVG と Canvas の りょうほうを だす
+   ・SVG   … GP.icons.svg(name, size)  → 文字列（html: に そのまま つかえる）
+   ・DOM   … GP.icons.el(name, size)   → <span class="ico">
+   ・Canvas… GP.icons.paint(ctx, name, cx, cy, size)  ※中心ぞろえ
+
+   かたち の かきかた（すべて 32x32 の ざひょう）:
+     R(x,y,w,h,r,fill)        かどまる しかく
+     C(cx,cy,r,fill)          まる
+     E(cx,cy,rx,ry,fill)      だえん
+     P(d,fill)                パス（Path2D で canvas にも でる）
+     G([[x,y],...],fill)      ただの ずけい
+     L(x1,y1,x2,y2,col,w)     せん
+   ========================================================= */
+window.GP = window.GP || {};
+
+(function (GP) {
+  'use strict';
+
+  /* いろ（css の パレットと そろえる） */
+  const INK = '#4A3A2C', SOFT = '#8A7969', LINE = '#E9DCC8';
+  const ACC = '#FF9F43', ACCD = '#F07C1F', YEL = '#FFC93C';
+  const PINK = '#FF8FA3', RED = '#EF6B6B', NG = '#E4614F';
+  const BLUE = '#4EA8DE', BLUED = '#2E7FB8', SKY = '#9EE3F2';
+  const PUR = '#8B6FD6', OK = '#57C785', GRASS = '#A9DE8C', GRASSD = '#77C05F';
+  const SAND = '#F7E2AE', CREAM = '#FFF9EF', WHITE = '#FFFFFF', GRAY = '#A9A29A';
+  const WOOD = '#C08A46', WOODD = '#8C6239', TAN = '#D9A760';
+
+  const R = (x, y, w, h, r, f) => ({ t: 'r', x, y, w, h, r: r || 0, f });
+  const C = (cx, cy, r, f) => ({ t: 'c', cx, cy, r, f });
+  const E = (cx, cy, rx, ry, f) => ({ t: 'e', cx, cy, rx, ry, f });
+  const P = (d, f) => ({ t: 'p', d, f });
+  const G = (pts, f) => ({ t: 'g', pts, f });
+  const L = (x1, y1, x2, y2, s, w) => ({ t: 'l', x1, y1, x2, y2, s, w: w || 2 });
+
+  /* =========================================================
+     アイコン定義
+     ========================================================= */
+  const ICONS = {
+
+    /* ---------- しげん ---------- */
+    danbo: [                                  // ダンボール
+      R(4, 12, 24, 15, 2, TAN),
+      R(4, 12, 24, 4, 1, WOOD),
+      G([[4, 12], [16, 7], [28, 12], [16, 16]], '#E8C285'),
+      R(14.5, 12, 3, 15, 1, WOODD),
+    ],
+    juice: [                                  // ジュース缶
+      P('M9 11 h14 l-2 15 a3 3 0 0 1 -3 2.6 h-4 a3 3 0 0 1 -3 -2.6 z', '#FFE9EF'),
+      R(8, 9, 16, 3.4, 1.6, PINK),
+      P('M18.6 9.2 l2.6 -6.2 l2.4 1 l-2.6 6.2 z', '#FFFFFF'),
+      P('M11.4 17 h9.2 l-1.1 8.6 a2 2 0 0 1 -2 1.8 h-3 a2 2 0 0 1 -2 -1.8 z', PINK),
+    ],
+    snack: [                                  // おやつ（クッキー）
+      C(16, 16, 11, '#E3B178'),
+      C(16, 16, 11 - 1.6, '#F0C894'),
+      C(12, 13, 1.9, WOODD), C(19.5, 12.5, 1.6, WOODD),
+      C(15.5, 19.5, 1.7, WOODD), C(21, 18.5, 1.4, WOODD),
+    ],
+    menko: [                                  // レアメンコ
+      R(5, 3, 22, 26, 3.4, ACCD),
+      R(7, 5, 18, 22, 2.4, '#FFEFD0'),
+      C(16, 14, 6, RED),
+      C(16, 14, 2.6, YEL),
+      R(10, 22, 12, 2.6, 1.3, ACC),
+    ],
+    kakera: [                                 // なかよしの かけら
+      P('M16 27 C7 20.5 3.6 16.2 3.6 11.9 A6.2 6.2 0 0 1 16 8.6 '
+        + 'A6.2 6.2 0 0 1 28.4 11.9 C28.4 16.2 25 20.5 16 27 z', PINK),
+      P('M16 8.6 A6.2 6.2 0 0 1 28.4 11.9 C28.4 16.2 25 20.5 16 27 z', '#FFB3C0'),
+      C(11.5, 13, 2, '#FFD2DB'),
+    ],
+    genki: [                                  // げんき（いなずま）
+      P('M18 2 L7 18 h7 l-3 12 L25 13 h-7.5 z', YEL),
+      P('M18 2 L7 18 h4.5 z', '#FFE07A'),
+    ],
+
+    /* ---------- ゆうぐ ---------- */
+    sunaba: [                                 // すなば
+      P('M3 24 C7 15 12 11 16 11 C20 11 25 15 29 24 z', SAND),
+      R(2, 23, 28, 5, 2, WOOD),
+      P('M20 9 a5.5 5.5 0 0 1 5.4 6.5 l-10.8 0 A5.5 5.5 0 0 1 20 9 z', RED),
+      P('M20 9 a5.5 5.5 0 0 0 -5.4 6.5 l5.4 0 z', WHITE),
+      L(20, 9, 20, 22, WOODD, 1.6),
+    ],
+    swing: [                                  // ブランコ
+      L(6, 27, 13, 6, WOODD, 2.2), L(26, 27, 19, 6, WOODD, 2.2),
+      L(11, 6, 21, 6, WOODD, 2.2),
+      L(13.5, 7, 13.5, 19, SOFT, 1.4), L(18.5, 7, 18.5, 19, SOFT, 1.4),
+      R(11, 18.5, 10, 3.2, 1.4, ACC),
+    ],
+    fountain: [                               // みずのみば
+      R(13, 14, 6, 12, 2, SOFT),
+      P('M16 13 C16 9 20 8 21 4', 'none'),
+      C(16, 12.5, 2.2, SKY),
+      P('M21.5 4.4 C21.5 7 19 8.6 17.4 11.4 l-2.6 -1.5 C16.6 7 18.4 5.6 18.8 3.4 z', SKY),
+      P('M5 26 h22 a3 3 0 0 1 -3 3 h-16 a3 3 0 0 1 -3 -3 z', BLUE),
+      R(5, 23.5, 22, 3, 1.4, '#BDEAF6'),
+    ],
+    gym: [                                    // ジャングルジム
+      R(5, 7, 22, 20, 2, 'none'),
+      L(6, 8, 6, 27, ACCD, 2.4), L(16, 6, 16, 27, ACCD, 2.4), L(26, 8, 26, 27, ACCD, 2.4),
+      L(5, 9, 27, 9, YEL, 2.4), L(5, 17, 27, 17, YEL, 2.4), L(5, 25, 27, 25, YEL, 2.4),
+      G([[16, 3], [27, 9], [5, 9]], BLUE),
+    ],
+    candy: [                                  // だがしや
+      R(5, 13, 22, 14, 2, CREAM),
+      R(4, 7, 24, 6, 2, RED),
+      R(9, 7, 4, 6, 0, WHITE), R(18, 7, 4, 6, 0, WHITE),
+      C(12, 20, 3.4, PINK), C(21, 20, 3.4, OK),
+      R(4, 25, 24, 3, 1.4, WOOD),
+    ],
+    slide: [                                  // きょだい すべりだい
+      P('M9 7 h5 v12 C14 24 18 24 24 24 v4 C13 28 9 24 9 16 z', ACC),
+      P('M9 7 h5 v4 h-5 z', ACCD),
+      L(6, 27, 6, 9, SOFT, 2), L(11, 27, 11, 9, SOFT, 2),
+      L(6, 12, 11, 12, SOFT, 1.6), L(6, 17, 11, 17, SOFT, 1.6), L(6, 22, 11, 22, SOFT, 1.6),
+      R(4, 26, 24, 3, 1.4, GRASS),
+    ],
+    base: [                                   // ひみつきち
+      P('M4 26 L16 8 L28 26 z', WOOD),
+      P('M16 8 L28 26 L16 26 z', TAN),
+      P('M13 26 v-7 a3 3 0 0 1 6 0 v7 z', WOODD),
+      L(16, 8, 16, 2, SOFT, 1.6),
+      G([[16.6, 2], [24, 4.4], [16.6, 7]], RED),
+    ],
+    house: [                                  // ぴよハウス
+      P('M3 15 L16 5 L29 15 z', RED),
+      R(7, 14, 18, 13, 2, CREAM),
+      R(13, 18, 6, 9, 1.4, WOOD),
+      C(16, 11.5, 2.2, SKY),
+    ],
+    craft: [                                  // こうさくしつ（どうぐばこ）
+      R(4, 13, 24, 14, 3, ACC),
+      R(4, 17, 24, 2.6, 0, ACCD),
+      P('M12 13 v-2.4 a4 4 0 0 1 8 0 V13 h-2.6 v-2.4 a1.4 1.4 0 0 0 -2.8 0 V13 z', SOFT),
+      R(14.6, 16, 2.8, 5, 1.2, WOODD),
+    ],
+    fort: [                                   // すなやま とりで
+      P('M5 27 V13 h4 v-3 h4 v3 h6 v-3 h4 v3 h4 v14 z', SAND),
+      R(13.6, 19, 5, 8, 1, '#E3C98A'),
+      L(5, 17.5, 27, 17.5, '#E3C98A', 1.6),
+      L(16, 10, 16, 4, SOFT, 1.4),
+      G([[16.6, 4], [23, 6.2], [16.6, 8.4]], BLUE),
+    ],
+    bench: [                                  // ベンチ
+      R(4, 13, 24, 3.2, 1.4, WOOD),
+      R(4, 18, 24, 3.2, 1.4, WOOD),
+      R(6, 21, 2.6, 7, 1, WOODD), R(23.4, 21, 2.6, 7, 1, WOODD),
+      R(6, 7, 2.6, 8, 1, WOODD), R(23.4, 7, 2.6, 8, 1, WOODD),
+      R(4, 8.6, 24, 3, 1.4, TAN),
+    ],
+    flower: [                                 // はなだん
+      R(3, 19, 26, 9, 2, WOOD),
+      R(3, 19, 26, 2.6, 1.2, TAN),
+      L(10, 19, 10, 11, GRASSD, 1.8), L(16, 19, 16, 9, GRASSD, 1.8), L(22, 19, 22, 12, GRASSD, 1.8),
+      C(10, 10, 3.2, PINK), C(16, 8, 3.6, RED), C(22, 11, 3, YEL),
+      C(10, 10, 1.2, WHITE), C(16, 8, 1.3, WHITE), C(22, 11, 1.1, WHITE),
+    ],
+
+    /* ---------- ちけい ---------- */
+    hiroba: [                                 // ひろば（め）
+      P('M16 28 V15', 'none'),
+      L(16, 28, 16, 14, GRASSD, 2.2),
+      P('M16 17 C10 17 6 13 6 8 C12 8 16 11 16 17 z', GRASS),
+      P('M16 15 C16 9 20 6 26 6 C26 11 22 15 16 15 z', GRASSD),
+    ],
+    ike: [                                    // いけ
+      P('M16 3 C22 11 26 15.4 26 19.6 A10 10 0 0 1 6 19.6 C6 15.4 10 11 16 3 z', BLUE),
+      P('M16 3 C19 7 21.4 10 23 12.6 C19.6 14 17 12 16 9 z', '#8ED2F0'),
+      E(12, 21, 2.6, 1.8, '#9FDDF5'),
+    ],
+    kodachi: [                                // こだち
+      R(14.6, 17, 3, 11, 1.2, WOODD),
+      C(16, 12, 8, GRASSD),
+      C(10.6, 15, 5.4, GRASS),
+      C(21, 15.4, 5, GRASS),
+      C(16, 9.6, 4.6, '#BCE7A2'),
+    ],
+    oka: [                                    // おかし山
+      P('M3 27 L12 12 L18 20 L22 14 L29 27 z', '#C7A079'),
+      P('M12 12 L18 20 L15 24 L7.4 19 z', '#E6CDA8'),
+      P('M22 14 L29 27 L22 27 z', '#B08A62'),
+      C(12, 11.4, 2.6, PINK), C(22, 13.6, 2.2, WHITE),
+    ],
+
+    /* ---------- そうび ---------- */
+    straw: [                                  // 麦わら帽子
+      E(16, 21, 13, 5, SAND),
+      P('M8 21 C8 12 11 7 16 7 C21 7 24 12 24 21 z', '#EFD18C'),
+      R(8.6, 17.6, 14.8, 3.2, 1.4, RED),
+    ],
+    net: [                                    // 虫取り網
+      L(7, 28, 17, 15, WOOD, 2.6),
+      C(20, 11, 8, 'none'),
+      P('M20 3 a8 8 0 1 1 0 16 a8 8 0 1 1 0 -16 z', '#E8F6FF'),
+      P('M20 4.4 a6.6 6.6 0 1 0 0 13.2 a6.6 6.6 0 1 0 0 -13.2 z', WHITE),
+      L(13.6, 11, 26.4, 11, '#BBD7E6', 1), L(20, 4.6, 20, 17.4, '#BBD7E6', 1),
+    ],
+    randsel: [                                // ランドセル
+      R(6, 11, 20, 17, 3, RED),
+      P('M6 14 a10 7 0 0 1 20 0 z', '#F58282'),
+      R(13.4, 17, 5.2, 4, 1.2, YEL),
+      L(9, 11, 9, 6, '#C94B4B', 2), L(23, 11, 23, 6, '#C94B4B', 2),
+    ],
+    gun: [                                    // 水鉄砲
+      R(5, 12, 17, 6, 2, BLUE),
+      R(20, 13.4, 7, 3.2, 1.4, BLUED),
+      P('M8 18 h6 l-2.4 8 h-5 z', BLUED),
+      C(10, 9.6, 3.6, SKY),
+      C(10, 9.6, 1.6, WHITE),
+    ],
+    shield: [                                 // ダンボール盾
+      P('M16 3 L28 7 V16 C28 23 22 27.6 16 29 C10 27.6 4 23 4 16 V7 z', TAN),
+      P('M16 3 L28 7 V16 C28 23 22 27.6 16 29 z', WOOD),
+      L(9, 11, 23, 11, WOODD, 1.4), L(9, 17, 23, 17, WOODD, 1.4),
+    ],
+    boots: [                                  // ながぐつ
+      P('M7 5 h7 v13 h6 a4 4 0 0 1 4 4 v5 H7 z', YEL),
+      R(6, 25, 19, 3.4, 1.6, WOODD),
+      R(7, 5, 7, 3.4, 1.2, '#F2B134'),
+    ],
+    goggle: [                                 // すいちゅうメガネ
+      R(3, 17, 26, 2.6, 1.3, SOFT),
+      C(11, 14.5, 7, BLUED),
+      C(21, 14.5, 7, BLUED),
+      C(11, 14.5, 5, SKY), C(21, 14.5, 5, SKY),
+      R(14.6, 13, 2.8, 2.6, 1, BLUED),
+      C(9.4, 12.8, 1.4, WHITE), C(19.4, 12.8, 1.4, WHITE),
+    ],
+    towel: [                                  // まきタオル
+      R(3, 10, 20, 12, 6, RED),
+      C(23, 16, 7, '#F58282'),
+      C(23, 16, 4.6, RED),
+      C(23, 16, 2.2, '#F9A5A5'),
+      L(8, 11, 8, 21, '#F9A5A5', 1.6), L(13, 11, 13, 21, '#F9A5A5', 1.6),
+    ],
+    whistle: [                                // ホイッスル
+      L(5, 5, 13.6, 10, SOFT, 1.6),
+      C(13, 19, 8.4, ACC),
+      R(15, 10.6, 13, 6.4, 2, ACC),
+      R(24, 10.6, 4, 6.4, 1.4, ACCD),
+      C(13, 19, 3.6, '#FFE2BC'),
+      C(9.6, 15.4, 1.6, '#FFC98A'),
+    ],
+    crown: [                                  // きんのかんむり
+      P('M4 24 L6 9 l6 5 l4 -8 l4 8 l6 -5 l2 15 z', YEL),
+      R(4, 23.4, 24, 4, 1.6, '#E8A921'),
+      C(16, 13.4, 2, RED), C(8.4, 15.6, 1.6, BLUE), C(23.6, 15.6, 1.6, BLUE),
+    ],
+
+    /* ---------- やくわり・さくせん ---------- */
+    rush: [                                   // そっこう
+      P('M12 4 L26 16 L12 28 z', ACCD),
+      R(4, 9, 5, 3, 1.4, ACC), R(2, 15, 7, 3, 1.4, ACC), R(4, 21, 5, 3, 1.4, ACC),
+    ],
+    range: [                                  // えんきょり
+      P('M22 4 C25.4 9 27 12 27 14.6 A5 5 0 0 1 17 14.6 C17 12 18.6 9 22 4 z', BLUE),
+      P('M10 13 C12.6 17 14 19.4 14 21.4 A4 4 0 0 1 6 21.4 C6 19.4 7.4 17 10 13 z', SKY),
+      C(23.6, 22.6, 3, '#8ED2F0'),
+    ],
+    brain: [                                  // さくせん
+      P('M16 5 a7 7 0 0 1 6 10.6 C20.6 17.6 20 19 20 21 h-8 c0 -2 -0.6 -3.4 -2 -5.4 A7 7 0 0 1 16 5 z', YEL),
+      R(12.4, 21.4, 7.2, 3, 1.2, SOFT),
+      R(13.4, 25, 5.2, 2.6, 1.2, SOFT),
+      P('M16 7.6 a4.6 4.6 0 0 0 -4 6.8 l2 -0.8 a2.6 2.6 0 0 1 2 -4 z', '#FFE89A'),
+    ],
+    trick: [                                  // おじゃま
+      C(16, 16, 11, OK),
+      C(12, 13.4, 1.8, WHITE), C(20, 13.4, 1.8, WHITE),
+      P('M10.6 19 C13 23 19 23 21.4 19 z', WHITE),
+      P('M14 22.4 h4 a2 2 0 0 1 -4 0 z', PINK),
+    ],
+    surround: [                               // とりかこみ
+      C(16, 16, 11, NG),
+      C(16, 16, 7.4, WHITE),
+      C(16, 16, 4, NG),
+      C(16, 16, 1.6, WHITE),
+    ],
+
+    /* ---------- タブ ---------- */
+    tabPark: [                                // こうえん
+      C(24, 8.6, 4, YEL),
+      P('M2 27 C6 19 10 15 16 15 C22 15 26 19 30 27 z', GRASS),
+      R(14.6, 18, 2.6, 9, 1, WOODD),
+      C(16, 15, 6.4, GRASSD),
+      C(16, 13.4, 3.4, '#BCE7A2'),
+    ],
+    tabMap: [                                 // なわばり
+      P('M16 3 L27 9.5 V22.5 L16 29 L5 22.5 V9.5 z', SAND),
+      P('M16 3 L27 9.5 V22.5 L16 29 z', '#EBD199'),
+      P('M16 10 L21.4 13.2 V19.6 L16 22.8 L10.6 19.6 V13.2 z', ACC),
+    ],
+    tabSquad: [                               // なかま（実機シルエット・piyo.js の SHAPE から 生成）
+      P('M17.4 3 Q17.6 3 18 3.4 Q18.4 3.8 18.5 4 Q18.6 4.2 18.6 4.7 Q18.7 5.2 18.4 5.8 Q18.1 6.3 18.7 6.7 Q19.3 7.1 19.9 7.7 Q20.5 8.3 21.2 9.7 Q21.9 11 22.4 12.3 Q23 13.6 23.4 14.3 Q23.7 15 23.8 15.1 Q23.8 15.1 24.4 15.1 Q25 15.1 25.2 15.4 Q25.4 15.7 25.3 16.3 Q25.2 16.9 25 17.3 Q24.9 17.7 24.8 17.9 Q24.6 18.1 24.6 18.9 Q24.7 19.6 24.8 19.6 Q24.8 19.7 24.8 21 Q24.7 22.4 24.5 23 Q24.3 23.7 23.7 24.7 Q23.1 25.7 22.6 26.3 Q22 26.8 21.4 27.2 Q20.7 27.6 20.3 28.1 Q19.8 28.6 19.6 28.6 Q19.3 28.7 19.3 28.6 Q19.2 28.6 16.4 28.6 Q13.7 28.7 13.6 28.6 Q13.6 28.6 12.9 28.6 Q12.2 28.6 12.1 28.6 Q12 28.5 11.6 28.1 Q11.2 27.6 10.6 27.2 Q9.9 26.8 9.4 26.3 Q8.8 25.7 8.3 24.9 Q7.7 24 7.5 23.4 Q7.3 22.8 7.2 22.2 Q7.1 21.6 7.1 20.6 Q7.1 19.7 7.2 19.6 Q7.2 19.6 7.3 18.9 Q7.3 18.1 7 17.6 Q6.8 17.2 6.7 16.8 Q6.5 16.4 6.5 15.9 Q6.6 15.4 6.8 15.3 Q7 15.1 7.5 15.1 Q7.9 15.1 8.3 14.7 Q8.6 14.3 9.3 12.7 Q10 11 10.7 9.7 Q11.4 8.3 12 7.7 Q12.6 7.1 13 6.9 Q13.4 6.7 13.7 6.4 Q14 6.1 14 5.9 Q14 5.7 13.8 5.6 Q13.7 5.5 12.6 4.9 Q11.6 4.3 11.6 4 Q11.7 3.8 11.8 3.6 Q12 3.5 12.4 3.5 Q12.8 3.5 14.2 4.7 Q15.5 5.8 15.8 5.8 Q16.2 5.9 16.6 5.7 Q17 5.4 17.2 5.1 Q17.4 4.8 17.4 4.4 Q17.5 4.1 17.4 3.5 Q17.2 3 17.4 3 Z', YEL),
+      E(13.6, 11.1, 0.64, 0.67, INK),
+      E(18.4, 11.1, 0.64, 0.67, INK),
+      E(16, 12.1, 1.81, 0.9, ACCD),
+    ],
+    tabGacha: [                               // スカウト（プレゼント）
+      R(4, 13, 24, 15, 2, RED),
+      R(3, 9, 26, 5, 2, '#F58282'),
+      R(13.6, 9, 4.8, 19, 0, YEL),
+      P('M16 9 C12 9 9 7.6 9 5.6 C9 3.6 12 3.6 16 9 z', YEL),
+      P('M16 9 C20 9 23 7.6 23 5.6 C23 3.6 20 3.6 16 9 z', YEL),
+    ],
+
+    /* ---------- ごきげん顔（HUD） ---------- */
+    face0: [                                  // ストライキ
+      C(16, 16, 12, NG),
+      P('M9 12.6 l5.4 2.2 M23 12.6 l-5.4 2.2', 'none'),
+      L(9.4, 11.6, 14, 14.4, '#8E2E22', 2), L(22.6, 11.6, 18, 14.4, '#8E2E22', 2),
+      P('M10.6 24 C13 20 19 20 21.4 24 C19 22.4 13 22.4 10.6 24 z', '#8E2E22'),
+    ],
+    face1: [                                  // おこり
+      C(16, 16, 12, '#F08A5D'),
+      L(9.6, 12, 14.2, 14, INK, 2), L(22.4, 12, 17.8, 14, INK, 2),
+      C(12.2, 17.4, 1.7, INK), C(19.8, 17.4, 1.7, INK),
+      P('M11 24.4 C13.4 21.6 18.6 21.6 21 24.4 C18.6 23.2 13.4 23.2 11 24.4 z', INK),
+    ],
+    face2: [                                  // むすっ
+      C(16, 16, 12, YEL),
+      C(12.2, 14.6, 1.8, INK), C(19.8, 14.6, 1.8, INK),
+      R(11.6, 21.4, 8.8, 2, 1, INK),
+    ],
+    face3: [                                  // ふつう
+      C(16, 16, 12, '#FFD95E'),
+      C(12.2, 14, 1.9, INK), C(19.8, 14, 1.9, INK),
+      P('M11.4 19.6 C13.6 23.4 18.4 23.4 20.6 19.6 C18.4 24.6 13.6 24.6 11.4 19.6 z', INK),
+    ],
+    face4: [                                  // にこにこ
+      C(16, 16, 12, '#9FE07A'),
+      P('M9.6 14.6 C10.6 12 13.4 12 14.4 14.6 z', INK),
+      P('M17.6 14.6 C18.6 12 21.4 12 22.4 14.6 z', INK),
+      P('M10.4 18.6 C13 24 19 24 21.6 18.6 C19 25.4 13 25.4 10.4 18.6 z', INK),
+    ],
+    face5: [                                  // さいこう
+      C(16, 16, 12, OK),
+      G([[12.2, 10.6], [13.4, 13.4], [16.2, 13.8], [14.2, 15.8], [14.8, 18.6],
+        [12.2, 17.2], [9.6, 18.6], [10.2, 15.8], [8.2, 13.8], [11, 13.4]], YEL),
+      G([[21.4, 11.4], [22.4, 13.8], [24.8, 14.2], [23, 15.9], [23.6, 18.3],
+        [21.4, 17.1], [19.2, 18.3], [19.8, 15.9], [18, 14.2], [20.4, 13.8]], YEL),
+      P('M10.4 20 C13 25.4 19 25.4 21.6 20 C19 26.8 13 26.8 10.4 20 z', INK),
+    ],
+
+    /* ---------- その他 UI ---------- */
+    lock: [
+      P('M10 14 v-3.4 a6 6 0 0 1 12 0 V14 h-3 v-3.4 a3 3 0 0 0 -6 0 V14 z', SOFT),
+      R(7, 13.4, 18, 14, 3, YEL),
+      C(16, 20.4, 2.4, WOODD),
+    ],
+    sword: [                                  // たたかい（つるぎ 2本）
+      P('M24.6 3 h4.4 v4.4 L13.6 22.8 l-4.4 -4.4 z', '#C9C2BA'),
+      P('M7.4 3 H3 v4.4 L18.4 22.8 l4.4 -4.4 z', '#DED8D1'),
+      L(8, 21, 13.4, 26.4, WOODD, 3), L(24, 21, 18.6, 26.4, WOODD, 3),
+      L(6.6, 24.6, 9.8, 27.8, WOOD, 3.4), L(25.4, 24.6, 22.2, 27.8, WOOD, 3.4),
+    ],
+    heart: [
+      P('M16 27 C7 20.5 3.6 16.2 3.6 11.9 A6.2 6.2 0 0 1 16 8.6 '
+        + 'A6.2 6.2 0 0 1 28.4 11.9 C28.4 16.2 25 20.5 16 27 z', RED),
+      P('M9.4 11 a3 3 0 0 1 3.4 -1.4 C11 10.4 10.4 12 10.6 13.6 z', '#FFB6B6'),
+    ],
+    trophy: [
+      P('M9 5 h14 v8 a7 7 0 0 1 -14 0 z', YEL),
+      P('M9 7 H5.6 a5 5 0 0 0 5 5 z', '#E8A921'),
+      P('M23 7 h3.4 a5 5 0 0 1 -5 5 z', '#E8A921'),
+      R(14, 19.4, 4, 4, 1, '#E8A921'),
+      R(9.6, 23, 12.8, 4, 1.6, WOOD),
+    ],
+    warn: [
+      P('M16 3 L30 28 H2 z', '#F2B134'),
+      R(14.6, 11, 2.8, 9, 1.4, INK),
+      C(16, 23.4, 1.8, INK),
+    ],
+
+    /* ---------- みだし・おしらせ よう ---------- */
+    inbox: [                                  // しゅうかく
+      P('M4 17 h7 l2 4 h6 l2 -4 h7 v9 a2 2 0 0 1 -2 2 H6 a2 2 0 0 1 -2 -2 z', BLUE),
+      P('M16 3 v10', 'none'),
+      L(16, 4, 16, 13, ACCD, 3),
+      P('M11 10 l5 5.4 l5 -5.4 z', ACCD),
+    ],
+    calendar: [                               // 日づけ
+      R(4, 6, 24, 22, 3, WHITE),
+      R(4, 6, 24, 7, 3, RED),
+      R(4, 10, 24, 3, 0, RED),
+      R(9, 3, 3, 6, 1.4, SOFT), R(20, 3, 3, 6, 1.4, SOFT),
+      R(8, 16, 4, 3.4, 1, LINE), R(14, 16, 4, 3.4, 1, LINE), R(20, 16, 4, 3.4, 1, ACC),
+      R(8, 21.6, 4, 3.4, 1, LINE), R(14, 21.6, 4, 3.4, 1, LINE),
+    ],
+    shock: [                                  // がーん
+      C(16, 16, 12, '#8ED2F0'),
+      R(4, 4, 24, 9, 4.5, '#5BB6E2'),
+      C(12, 15, 2.6, WHITE), C(20, 15, 2.6, WHITE),
+      C(12, 15, 1.2, INK), C(20, 15, 1.2, INK),
+      E(16, 23, 3, 3.6, INK),
+    ],
+    party: [                                  // おいわい
+      P('M4 28 L10 10 L22 22 z', YEL),
+      P('M4 28 L7 19 L13 25 z', ACC),
+      C(21, 6, 2, PINK), C(26, 11, 1.8, BLUE), C(16, 5, 1.4, OK), C(27, 18, 1.6, RED),
+      L(14, 12, 19, 4, PUR, 1.6), L(20, 18, 28, 14, OK, 1.6),
+    ],
+    handshake: [                              // おねがい（あくしゅ）
+      P('M2 13 l7 -3 l7 4 l-3 3 a2 2 0 0 1 -3 0 l-2 -2 l-3 2 z', '#F7C99A'),
+      P('M30 13 l-7 -3 l-7 3 l8 9 l6 -4 z', '#E8A97A'),
+      P('M12 15 l6 6 a1.6 1.6 0 0 1 -2.2 2.2 l-6 -5.6 z', '#F7C99A'),
+      R(1, 11, 5, 9, 1.4, BLUE), R(26, 11, 5, 9, 1.4, ACC),
+    ],
+    sparkle: [                                // とくべつ
+      P('M16 2 C17 10 18 12 26 14 C18 16 17 18 16 26 C15 18 14 16 6 14 C14 12 15 10 16 2 z', YEL),
+      P('M25 19 C25.5 22.5 26 23 29.4 24 C26 25 25.5 25.5 25 29 C24.5 25.5 24 25 20.6 24 C24 23 24.5 22.5 25 19 z', '#FFE07A'),
+      C(7, 6, 1.8, '#FFE07A'),
+    ],
+    book: [                                   // あそびかた
+      P('M3 7 C8 5 12 5.4 16 8 V27 C12 24.6 8 24.4 3 26 z', BLUE),
+      P('M29 7 C24 5 20 5.4 16 8 V27 C20 24.6 24 24.4 29 26 z', '#7CC0E8'),
+      L(6, 11, 12.6, 11, WHITE, 1.4), L(6, 15, 12.6, 15, WHITE, 1.4),
+      L(19.4, 11, 26, 11, WHITE, 1.4), L(19.4, 15, 26, 15, WHITE, 1.4),
+    ],
+    save: [                                   // セーブ
+      P('M5 4 h18 l4 4 v18 a2 2 0 0 1 -2 2 H7 a2 2 0 0 1 -2 -2 z', BLUED),
+      R(10, 4, 11, 8, 1, '#D6ECFA'),
+      R(17, 5.4, 2.6, 5, 0.6, BLUED),
+      R(9, 17, 14, 11, 1.4, WHITE),
+      L(11.6, 21, 20.4, 21, LINE, 1.4), L(11.6, 24.4, 20.4, 24.4, LINE, 1.4),
+    ],
+    bell: [                                   // おしらせ
+      P('M16 4 a8 8 0 0 1 8 8 v6 l3 4 H5 l3 -4 v-6 a8 8 0 0 1 8 -8 z', YEL),
+      C(16, 25, 3, ACCD),
+      C(16, 3.6, 1.8, '#E8A921'),
+      P('M12 8.6 a5 5 0 0 0 -1.6 3.4 v4 h2 v-4 a3 3 0 0 1 1 -2 z', '#FFE89A'),
+    ],
+    refresh: [                                // さいしょから
+      P('M16 5 a11 11 0 1 1 -10.4 14.4 l3.8 -1.2 A7 7 0 1 0 16 9 z', OK),
+      P('M16 1.6 L22 7 L16 12.4 z', OK),
+    ],
+    promise: [                                // お約束（ゆびきり の やくそくしょ）
+      R(6, 3, 20, 26, 2.4, CREAM),
+      R(6, 3, 20, 26, 2.4, 'none'),
+      L(10, 9, 22, 9, LINE, 1.6), L(10, 13, 22, 13, LINE, 1.6), L(10, 17, 18, 17, LINE, 1.6),
+      C(20, 23, 4.6, RED),
+      C(20, 23, 2.2, '#F9A5A5'),
+    ],
+    flag: [                                   // ゆずる（しろはた）
+      L(7, 3, 7, 29, WOODD, 2.4),
+      P('M8 4 C13 2 17 7 26 5 V17 C17 19 13 14 8 16 z', WHITE),
+      P('M8 4 C13 2 17 7 26 5 V8 C17 10 13 5 8 7 z', LINE),
+    ],
+    megaphone: [                              // おうえん
+      P('M5 12 h5 L24 5 V27 L10 20 H5 a2 2 0 0 1 -2 -2 v-4 a2 2 0 0 1 2 -2 z', ACC),
+      R(22, 4, 4, 24, 2, ACCD),
+      P('M8 20 h4 l2 7 h-4 z', SOFT),
+      L(28, 11, 30.6, 9.4, YEL, 1.8), L(28.4, 16, 31, 16, YEL, 1.8), L(28, 21, 30.6, 22.6, YEL, 1.8),
+    ],
+    leaf: [                                   // のどか
+      P('M5 27 C5 13 13 5 27 5 C27 19 19 27 5 27 z', GRASSD),
+      P('M5 27 C11 21 16 15 23 9', 'none'),
+      L(6, 26, 22, 10, '#BCE7A2', 1.6),
+    ],
+    drop: [                                   // あせ（こまった）
+      P('M16 3 C22 11 25 15.4 25 19.6 A9 9 0 0 1 7 19.6 C7 15.4 10 11 16 3 z', SKY),
+      E(12.6, 19.4, 2.2, 3, WHITE),
+    ],
+  };
+
+  /* しげん id → アイコン名（data.js の RES と そろえる） */
+  const RES_ICON = { danbo: 'danbo', juice: 'juice', snack: 'snack', menko: 'menko', kakera: 'kakera', genki: 'genki' };
+
+  /* =========================================================
+     SVG で かきだす
+     ========================================================= */
+  function partSvg(p) {
+    switch (p.t) {
+      case 'r': return `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="${p.r}" fill="${p.f}"/>`;
+      case 'c': return `<circle cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="${p.f}"/>`;
+      case 'e': return `<ellipse cx="${p.cx}" cy="${p.cy}" rx="${p.rx}" ry="${p.ry}" fill="${p.f}"/>`;
+      case 'p': return p.f === 'none' ? '' : `<path d="${p.d}" fill="${p.f}"/>`;
+      case 'g': return `<polygon points="${p.pts.map((q) => q.join(',')).join(' ')}" fill="${p.f}"/>`;
+      case 'l': return `<line x1="${p.x1}" y1="${p.y1}" x2="${p.x2}" y2="${p.y2}" `
+        + `stroke="${p.s}" stroke-width="${p.w}" stroke-linecap="round"/>`;
+      default: return '';
+    }
+  }
+
+  /** アイコンの SVG 文字列。size は px（きほん 1em） */
+  function svg(name, size) {
+    const parts = ICONS[name];
+    if (!parts) return '';
+    const s = size ? ` width="${size}" height="${size}"` : '';
+    return `<svg class="ico" viewBox="0 0 32 32"${s} aria-hidden="true" focusable="false">`
+      + parts.map(partSvg).join('') + '</svg>';
+  }
+
+  /** <span class="ico-wrap"> に いれた DOM */
+  function el(name, size) {
+    const span = document.createElement('span');
+    span.className = 'ico-wrap';
+    span.innerHTML = svg(name, size);
+    return span;
+  }
+
+  /** しげんの アイコン（id から） */
+  function res(id, size) { return svg(RES_ICON[id] || id, size); }
+
+  /* =========================================================
+     Canvas に かく（中心ぞろえ）
+     ========================================================= */
+  function roundRect(ctx, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.lineTo(x + w - rr, y); ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+    ctx.lineTo(x + w, y + h - rr); ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+    ctx.lineTo(x + rr, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+    ctx.lineTo(x, y + rr); ctx.quadraticCurveTo(x, y, x + rr, y);
+    ctx.closePath();
+  }
+
+  function paint(ctx, name, cx, cy, size) {
+    const parts = ICONS[name];
+    if (!parts) return;
+    const k = size / 32;
+    ctx.save();
+    ctx.translate(cx - size / 2, cy - size / 2);
+    ctx.scale(k, k);
+    parts.forEach((p) => {
+      ctx.fillStyle = p.f || '#000';
+      switch (p.t) {
+        case 'r': roundRect(ctx, p.x, p.y, p.w, p.h, p.r); ctx.fill(); break;
+        case 'c': ctx.beginPath(); ctx.arc(p.cx, p.cy, p.r, 0, Math.PI * 2); ctx.fill(); break;
+        case 'e': ctx.beginPath(); ctx.ellipse(p.cx, p.cy, p.rx, p.ry, 0, 0, Math.PI * 2); ctx.fill(); break;
+        case 'p':
+          if (p.f === 'none') break;
+          try { ctx.fill(new Path2D(p.d)); } catch (e) { /* Path2D なし = えがかない */ }
+          break;
+        case 'g':
+          ctx.beginPath();
+          p.pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])));
+          ctx.closePath(); ctx.fill();
+          break;
+        case 'l':
+          ctx.strokeStyle = p.s; ctx.lineWidth = p.w; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(p.x1, p.y1); ctx.lineTo(p.x2, p.y2); ctx.stroke();
+          break;
+        default: break;
+      }
+    });
+    ctx.restore();
+  }
+
+  /** index.html に おいた data-icon を うめる */
+  function fillStatic(root) {
+    (root || document).querySelectorAll('[data-icon]').forEach((node) => {
+      const n = node.getAttribute('data-icon');
+      if (!ICONS[n] || node.firstElementChild) return;
+      node.innerHTML = svg(n);
+    });
+  }
+
+  GP.icons = { svg, el, res, paint, fillStatic, has: (n) => !!ICONS[n], names: () => Object.keys(ICONS) };
 })(window.GP);
 
 /* ===== js/piyodata.js ===== */
@@ -2724,6 +3304,14 @@ window.GP = window.GP || {};
           st.wipedOnce[f] = true;
           st.dayBonus = (st.dayBonus || 0) + bonus;
           out.push({ fac: f, bonus, again });
+          // すでに 時間ぎれで けっちゃく して いても、リミットが のびたら ゲームは つづく
+          // （ぼうえい戦などで リザルトの ひょうじが あとまわしに なって いる あいだの せめこみ）
+          if (st.ended && st.endedBy === 'time' && st.day < dayLimitNow()) {
+            st.ended = null;
+            st.endedBy = '';
+            st.endedDay = 0;
+            log('タイムリミットが のびた！ しょうぶは まだ つづく！', 'good');
+          }
           log(again
             ? `${D.FACTIONS[f].name}を ふたたび ぜんめつ させた！ タイムリミット +${bonus}日`
             : `${D.FACTIONS[f].name}を ぜんめつ させた！ タイムリミット +${bonus}日`, 'good');
@@ -3126,9 +3714,16 @@ window.GP = window.GP || {};
   /* =========================================================
      トースト
      ========================================================= */
+  /** 文字列の なかの :name: を アイコン(SVG)に する。ほかの 文字は エスケープ */
+  function rich(str) {
+    const esc = String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return esc.replace(/:([A-Za-z][A-Za-z0-9]*):/g, (m, n) => (GP.icons.has(n) ? GP.icons.svg(n) : m));
+  }
+
   function toast(text, kind) {
     const root = $('#toast-root');
-    const t = el('div', { class: 'toast ' + (kind || ''), text });
+    const t = el('div', { class: 'toast ' + (kind || ''), html: rich(text) });
     root.appendChild(t);
     setTimeout(() => {
       t.classList.add('out');
@@ -3142,7 +3737,7 @@ window.GP = window.GP || {};
      ========================================================= */
   function modal(cfg) {
     const root = $('#modal-root');
-    $('#modal-title').textContent = cfg.title || '';
+    $('#modal-title').innerHTML = rich(cfg.title || '');
     const body = $('#modal-body');
     body.innerHTML = '';
     if (typeof cfg.body === 'string') body.innerHTML = cfg.body;
@@ -3185,10 +3780,10 @@ window.GP = window.GP || {};
      HUD
      ========================================================= */
   const KIGEN_FACE = [
-    [0, '😖'], [26, '😠'], [40, '😕'], [58, '😊'], [78, '😄'], [92, '🤩'],
+    [0, 'face0'], [26, 'face1'], [40, 'face2'], [58, 'face3'], [78, 'face4'], [92, 'face5'],
   ];
   function kigenFace(v) {
-    let f = '😊';
+    let f = 'face3';
     KIGEN_FACE.forEach((k) => { if (v >= k[0]) f = k[1]; });
     return f;
   }
@@ -3215,7 +3810,7 @@ window.GP = window.GP || {};
 
     const k = st.kigen;
     $('#kigen-val').textContent = k;
-    $('#kigen-face').textContent = kigenFace(k);
+    $('#kigen-face').innerHTML = GP.icons.svg(kigenFace(k));
     const fill = $('#kigen-fill');
     fill.style.width = k + '%';
     fill.classList.toggle('is-low', St.isStriking());
@@ -3268,8 +3863,8 @@ window.GP = window.GP || {};
     const row = el('div', { class: 'cost-row' });
     Object.keys(cost).forEach((k) => {
       const lack = (St.st.res[k] || 0) < cost[k];
-      row.appendChild(el('span', { class: 'cost' + (lack ? ' lack' : '') },
-        D.RES[k].ico + ' ' + cost[k]));
+      row.appendChild(el('span', { class: 'cost' + (lack ? ' lack' : ''),
+        html: GP.icons.res(k) + ' ' + cost[k] }));
     });
     return row;
   }
@@ -3277,7 +3872,7 @@ window.GP = window.GP || {};
   function costText(cost) {
     return Object.keys(cost).map((k) => {
       const lack = (St.st.res[k] || 0) < cost[k];
-      return `<span class="${lack ? 'lack' : ''}">${D.RES[k].ico}${cost[k]}</span>`;
+      return `<span class="${lack ? 'lack' : ''}">${GP.icons.res(k)}${cost[k]}</span>`;
     }).join('');
   }
 
@@ -3301,7 +3896,7 @@ window.GP = window.GP || {};
   function yieldText(y) {
     const keys = Object.keys(y).filter((k) => y[k] > 0);
     if (!keys.length) return 'なし';
-    return keys.map((k) => D.RES[k].ico + '+' + U.round(y[k], 1)).join(' ');
+    return keys.map((k) => GP.icons.res(k) + '+' + U.round(y[k], 1)).join(' ');
   }
 
   /* =========================================================
@@ -3321,7 +3916,7 @@ window.GP = window.GP || {};
   GP.ui = {
     toast, modal, closeModal, isModalOpen,
     refreshHud, tab, rerender, register, init,
-    piyoEl, costRow, costText, roleChip, statLine, kv, yieldText, kigenFace,
+    piyoEl, costRow, costText, roleChip, statLine, kv, yieldText, kigenFace, rich,
     get current() { return current; },
   };
 })(window.GP);
@@ -3957,10 +4552,10 @@ window.GP = window.GP || {};
     const keys = D.RES_ORDER.filter((k) => inc[k] > 0);
     if (!keys.length) box.appendChild(el('span', { class: 'inc' }, 'しゅうにゅう なし'));
     keys.forEach((k) => {
-      box.appendChild(el('span', { class: 'inc up' }, D.RES[k].ico + '+' + inc[k]));
+      box.appendChild(el('span', { class: 'inc up', html: GP.icons.res(k) + '+' + inc[k] }));
     });
     if (St.isStriking()) {
-      box.appendChild(el('span', { class: 'inc', style: 'color:#E4614F' }, '😖ストライキ中'));
+      box.appendChild(el('span', { class: 'inc', style: 'color:#E4614F', html: UI.rich(':face0:ストライキ中') }));
     }
 
     renderGrid();
@@ -3986,7 +4581,7 @@ window.GP = window.GP || {};
           class: 'plot is-locked', type: 'button',
           onclick: () => UI.toast('なわばりを ひろげると あきちが ふえるよ', ''),
         }, [
-          el('span', { class: 'plot-ico', text: '🔒' }),
+          el('span', { class: 'plot-ico', html: GP.icons.svg('lock') }),
           el('span', { class: 'plot-name', text: 'あきち' }),
         ]));
         continue;
@@ -4002,7 +4597,7 @@ window.GP = window.GP || {};
       const f = D.FAC_BY_ID[p.fac];
       const b = el('button', { class: 'plot is-built', type: 'button', onclick: () => openPlot(i) }, [
         el('span', { class: 'plot-lv', text: 'Lv' + p.lv }),
-        el('span', { class: 'plot-ico', text: f.ico }),
+        el('span', { class: 'plot-ico', html: GP.icons.svg(f.ico) }),
         el('span', { class: 'plot-name', text: f.short || f.name }),
       ]);
       // あそんでいる ぴよ
@@ -4058,7 +4653,7 @@ window.GP = window.GP || {};
         class: 'build-item', type: 'button', disabled: ok ? null : true,
         onclick: () => doBuild(idx, f.id),
       }, [
-        el('span', { class: 'build-ico', text: f.ico }),
+        el('span', { class: 'build-ico', html: GP.icons.svg(f.ico) }),
         el('span', { class: 'build-info' }, [
           el('h4', { text: f.name }),
           el('p', { text: f.desc }),
@@ -4081,7 +4676,7 @@ window.GP = window.GP || {};
     st.kigen = U.clamp(Math.round(St.kigenTarget() + st.kigenMod), 0, 100);
     St.log(D.FAC_BY_ID[facId].name + 'が かんせい！ みんな よろこんでいる。', 'good');
     UI.closeModal();
-    UI.toast(D.FAC_BY_ID[facId].ico + ' ' + D.FAC_BY_ID[facId].name + 'を たてた！', 'good');
+    UI.toast(':' + D.FAC_BY_ID[facId].ico + ': ' + D.FAC_BY_ID[facId].name + 'を たてた！', 'good');
     St.persist();
     render(); UI.refreshHud();
   }
@@ -4124,7 +4719,7 @@ window.GP = window.GP || {};
     Object.keys(spent).forEach((k) => { refund[k] = Math.floor(spent[k] * 0.5); });
 
     UI.modal({
-      title: f.ico + ' ' + f.name,
+      title: ':' + f.ico + ': ' + f.name,
       body,
       buttons: [
         { label: 'とりこわす', cls: 'btn-ghost', onClick: () => confirmRemove(idx, refund) },
@@ -4205,12 +4800,12 @@ window.GP = window.GP || {};
 
     // イベント
     if (rep.event && rep.event.id !== 'none') {
-      const ico = rep.event.kind === 'good' ? '🎉' : rep.event.kind === 'bad' ? '💦' : '🍃';
+      const ico = rep.event.kind === 'good' ? 'party' : rep.event.kind === 'bad' ? 'drop' : 'leaf';
       body.appendChild(el('div', {
         class: 'panel', style: 'margin-top:0;background:' +
           (rep.event.kind === 'bad' ? '#FFECE8' : '#EFFBEA'),
       }, [
-        el('div', { class: 'panel-title', text: ico + ' きょうの できごと' }),
+        el('div', { class: 'panel-title', html: UI.rich(':' + ico + ': きょうの できごと') }),
         el('p', { class: 'hint', style: 'margin:0;font-size:13px;color:#4A3A2C', text: rep.event.text }),
       ]));
     }
@@ -4220,10 +4815,10 @@ window.GP = window.GP || {};
     const incBox = el('div', { class: 'cost-row' });
     if (!incKeys.length) incBox.appendChild(el('span', { class: 'cost' }, 'なし'));
     incKeys.forEach((k) => {
-      incBox.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + rep.income[k]));
+      incBox.appendChild(el('span', { class: 'cost', html: GP.icons.res(k) + ' +' + rep.income[k] }));
     });
     body.appendChild(el('div', { class: 'panel', style: 'margin-top:8px' }, [
-      el('div', { class: 'panel-title', text: '📥 きょうの しゅうかく' }), incBox,
+      el('div', { class: 'panel-title', html: UI.rich(':inbox: きょうの しゅうかく') }), incBox,
       el('p', {
         class: 'hint', style: 'margin-bottom:0',
         text: 'ごきげん度 ' + rep.kigenBefore + ' → ' + st.kigen +
@@ -4247,7 +4842,7 @@ window.GP = window.GP || {};
       if (rep.pendingAttack) {
         const f = D.FACTIONS[rep.pendingAttack.fac];
         ul.appendChild(el('li', { class: 'bad' }, [
-          el('span', { class: 'log-day', text: '⚔' }),
+          el('span', { class: 'log-day', html: GP.icons.svg('sword') }),
           el('span', {
             class: 'log-txt',
             text: f.name + 'が「' + St.tileById(rep.pendingAttack.tile).name + '」に せめこんできた！',
@@ -4255,7 +4850,7 @@ window.GP = window.GP || {};
         ]));
       }
       body.appendChild(el('div', { class: 'panel', style: 'margin-bottom:0' }, [
-        el('div', { class: 'panel-title', text: '🗺 ライバルの うごき' }), ul,
+        el('div', { class: 'panel-title', html: UI.rich(':tabMap: ライバルの うごき') }), ul,
       ]));
     }
 
@@ -4351,7 +4946,7 @@ window.GP = window.GP || {};
         class: 'tac' + (st.tactic === t.id ? ' is-on' : ''), type: 'button',
         onclick: () => { st.tactic = t.id; St.persist(); render(); },
       }, [
-        el('span', { class: 'tac-ico', text: t.ico }),
+        el('span', { class: 'tac-ico', html: GP.icons.svg(t.ico) }),
         el('span', { text: t.name }),
       ]));
     });
@@ -4409,7 +5004,7 @@ window.GP = window.GP || {};
         onclick: () => openDetail(u),
       }, [
         el('span', { class: 'pcard-rar', style: 'color:' + rar.color, text: rar.name }),
-        inTeam ? el('span', { class: 'pcard-team', text: '⚔' }) : null,
+        inTeam ? el('span', { class: 'pcard-team', html: GP.icons.svg('sword') }) : null,
       ]);
       card.appendChild(UI.piyoEl(u, 'normal'));
       card.appendChild(el('span', { class: 'pcard-name', text: St.unitName(u) }));
@@ -4441,7 +5036,7 @@ window.GP = window.GP || {};
       } }, [el('span', { class: 'pcard-rar', style: 'color:' + rar.color, text: rar.name })]);
       card.appendChild(UI.piyoEl(u, 'normal'));
       card.appendChild(el('span', { class: 'pcard-name', text: St.unitName(u) }));
-      card.appendChild(el('span', { class: 'pcard-lv', text: `Lv${u.lv}・${D.ROLES[s.role].short}　⚔${St.unitPower(u)}` }));
+      card.appendChild(el('span', { class: 'pcard-lv', html: UI.rich(`Lv${u.lv}・${D.ROLES[s.role].short}　:sword:${St.unitPower(u)}`) }));
       grid.appendChild(card);
     });
     UI.modal({ title: 'なかまを えらぶ', body: grid });
@@ -4519,7 +5114,7 @@ window.GP = window.GP || {};
             St.persist(); UI.closeModal(); openDetail(u); render();
           },
         }, [
-          el('span', { text: e.ico + ' ' + e.name + (free > 1 || (!on && free > 0) ? ` ×${free}` : '') }),
+          el('span', { html: UI.rich(':' + e.ico + ': ' + e.name + (free > 1 || (!on && free > 0) ? ` ×${free}` : '')) }),
           el('small', { text: mods + (e.note ? '／' + e.note : '') }),
         ]));
       });
@@ -4530,7 +5125,7 @@ window.GP = window.GP || {};
       const T = D.RULES.train;
       body.appendChild(el('p', {
         class: 'hint', style: 'margin-top:0',
-        text: `もちもの 🧩${st.res.kakera}　🍪${Math.floor(st.res.snack)}　／　かけら${T.kakera}こ＋おやつ${T.snack}こ で けいけんち +${T.xp}`,
+        html: UI.rich(`もちもの :kakera:${st.res.kakera}　:snack:${Math.floor(st.res.snack)}　／　かけら${T.kakera}こ＋おやつ${T.snack}こ で けいけんち +${T.xp}`),
       }));
       const trainRow = el('div', { class: 'equip-row' });
       [1, 5, 20].forEach((n) => {
@@ -4540,7 +5135,7 @@ window.GP = window.GP || {};
           disabled: !St.canPay(need) || u.lv >= D.RULES.lvMax ? true : null,
           onclick: () => train(u, n),
         }, [
-          el('span', { text: `🧩${need.kakera} ＋ 🍪${need.snack}` }),
+          el('span', { html: UI.rich(`:kakera:${need.kakera} ＋ :snack:${need.snack}`) }),
           el('small', { text: `けいけんち +${n * T.xp}` }),
         ]));
       });
@@ -4614,7 +5209,7 @@ window.GP = window.GP || {};
         class: 'panel',
         style: 'background:' + (e.evo.kind === 'bad' ? '#FFECE8' : e.evo.kind === 'rare' ? '#FFF3D0' : '#EFFBEA'),
       }, [
-        el('div', { class: 'panel-title', text: e.evo.kind === 'rare' ? '✨ とくべつな せいちょう！' : '🌱 せいちょう！' }),
+        el('div', { class: 'panel-title', html: UI.rich(e.evo.kind === 'rare' ? ':sparkle: とくべつな せいちょう！' : ':hiroba: せいちょう！') }),
         el('p', { class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px', text: e.evo.msg }),
       ]));
     });
@@ -4630,7 +5225,7 @@ window.GP = window.GP || {};
       title: 'にがす？',
       body: el('div', {}, [
         el('p', { class: 'hint', text: St.unitName(u) + 'を おうちに かえします。なかよしのかけらに なります。' }),
-        el('div', { class: 'cost-row' }, [el('span', { class: 'cost' }, '🧩 +' + n)]),
+        el('div', { class: 'cost-row' }, [el('span', { class: 'cost', html: UI.rich(':kakera: +' + n) })]),
       ]),
       buttons: [
         { label: 'やめる', cls: 'btn-ghost' },
@@ -4640,7 +5235,7 @@ window.GP = window.GP || {};
             st.team = st.team.filter((x) => x !== u.uid);
             st.res.kakera += n;
             St.persist(); render(); UI.refreshHud();
-            UI.toast('またね！ 🧩+' + n, '');
+            UI.toast('またね！ :kakera:+' + n, '');
           },
         },
       ],
@@ -4833,8 +5428,8 @@ window.GP = window.GP || {};
       st.pendingScout = null;                    // かくてい したので ほぞんを けす
       St.persist();
       UI.refreshHud();
-      if (kept) UI.toast(`なかまが ${kept}ぴよ ふえた！` + (gotKakera ? `　🧩+${gotKakera}` : ''), 'good');
-      else UI.toast(`🧩 かけら +${gotKakera}`, 'good');
+      if (kept) UI.toast(`なかまが ${kept}ぴよ ふえた！` + (gotKakera ? `　:kakera:+${gotKakera}` : ''), 'good');
+      else UI.toast(`:kakera: かけら +${gotKakera}`, 'good');
     };
 
     const body = el('div');
@@ -4884,13 +5479,13 @@ window.GP = window.GP || {};
     const dk = D.RULES.dupKakera;
     body.appendChild(el('p', {
       class: 'hint',
-      text: `にがすと かけらに なります（N🧩${dk.N}／R🧩${dk.R}／SR🧩${dk.SR}）。` +
-        'なかまが いっぱいの ときや おなじ子が 3びき いるときも かけらに なります。',
+      html: UI.rich(`にがすと かけらに なります（N:kakera:${dk.N}／R:kakera:${dk.R}／SR:kakera:${dk.SR}）。` +
+        'なかまが いっぱいの ときや おなじ子が 3びき いるときも かけらに なります。'),
     }));
 
     const best = items.reduce((a, x) =>
       D.RARITY[x.sp.rar].star > D.RARITY[a.sp.rar].star ? x : a, items[0]);
-    const title = D.RARITY[best.sp.rar].star === 3 ? '✨ SR が でた！' : 'スカウト けっか';
+    const title = D.RARITY[best.sp.rar].star === 3 ? ':sparkle: SR が でた！' : 'スカウト けっか';
 
     UI.modal({
       title, body,
@@ -5460,7 +6055,7 @@ window.GP = window.GP || {};
       ctx.fillStyle = '#9BE7A5';
       const y = f.y - t * 26;
       ctx.font = '900 22px system-ui, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('♥', f.x, y);
+      GP.icons.paint(ctx, 'heart', f.x, y - 7, 20);
     }
     ctx.restore();
   }
@@ -5606,14 +6201,14 @@ window.GP = window.GP || {};
           const a = view.units[ev.id], d = view.units[ev.target];
           d.hp = ev.hp;
           view.fx.push({ kind: 'heal', x: d.px, y: d.py - 20, life: 1, dur: 0.7 });
-          pushLog(`${a.name} が ${d.name} を おうえん！ ❤+${ev.amt}`, 'heal');
+          pushLog(`${a.name} が ${d.name} を おうえん！ ${GP.icons.svg('heart')}+${ev.amt}`, 'heal');
           refreshHpBars();
           await wait(260);
           break;
         }
         case 'debuff': {
           const d = view.units[ev.id];
-          view.floats.push({ text: '⚔↓', x: d.px - 14, y: d.py - 30, life: 1, color: '#C8A2F0' });
+          view.floats.push({ text: '攻↓', x: d.px - 14, y: d.py - 30, life: 1, color: '#C8A2F0' });
           await wait(120);
           break;
         }
@@ -5797,9 +6392,7 @@ window.GP = window.GP || {};
       // ちけい アイコン
       ctx.save();
       ctx.globalAlpha = 0.34;
-      ctx.font = '30px system-ui, "Segoe UI Emoji", sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(ter.ico, p.x, p.y - 20);
+      GP.icons.paint(ctx, ter.ico, p.x, p.y - 20, 32);
       ctx.restore();
 
       // ぴよ（もちぬし）
@@ -5913,7 +6506,7 @@ window.GP = window.GP || {};
       document.createTextNode(t.name),
       el('span', { class: 'owner-chip', style: `background:${f.color};color:${textOn(f.color)}`, text: f.name }),
     ]));
-    box.appendChild(el('p', { class: 'hint', style: 'margin-top:4px', text: ter.ico + ' ' + ter.name + '：' + ter.note }));
+    box.appendChild(el('p', { class: 'hint', style: 'margin-top:4px', html: UI.rich(':' + ter.ico + ': ' + ter.name + '：' + ter.note) }));
 
     const stats = el('div', { class: 'tile-stats' });
     stats.appendChild(el('span', { class: 'tstat', html: 'まもり <b>' + St.tileDefense(selected) + '</b>' }));
@@ -5930,14 +6523,16 @@ window.GP = window.GP || {};
         class: 'btn btn-primary btn-sm', type: 'button',
         disabled: !St.canPay(cost) ? true : null,
         onclick: () => fortify(selected, cost),
-      }, `まもりを かためる（📦${cost.danbo}）`));
+        html: UI.rich(`まもりを かためる（:danbo:${cost.danbo}）`),
+      }));
     } else if (attackable) {
       const pact = s.owner !== 'none' && st.factions[s.owner] && st.factions[s.owner].pact > 0;
       btns.appendChild(el('button', {
         class: 'btn btn-danger btn-sm', type: 'button',
         disabled: st.genki <= 0 || pact ? true : null,
         onclick: () => confirmAttack(selected),
-      }, st.genki <= 0 ? 'げんきが たりない' : pact ? 'お約束中は せめられない' : `せめこむ（⚡1）`));
+        html: UI.rich(st.genki <= 0 ? 'げんきが たりない' : pact ? 'お約束中は せめられない' : 'せめこむ（:genki:1）'),
+      }));
       if (s.owner !== 'none') {
         btns.appendChild(el('button', {
           class: 'btn btn-ghost btn-sm', type: 'button',
@@ -5994,15 +6589,15 @@ window.GP = window.GP || {};
       slot.appendChild(UI.piyoEl(u, 'angry'));
       slot.appendChild(el('span', { class: 'slot-info' }, [
         el('span', { class: 'slot-name', text: St.unitName(u) }),
-        el('span', { class: 'slot-meta', text: `Lv${u.lv}　❤${ss.hp} ⚔${ss.atk}` }),
+        el('span', { class: 'slot-meta', html: UI.rich(`Lv${u.lv}　:heart:${ss.hp} :sword:${ss.atk}`) }),
       ]));
       roster.appendChild(slot);
     });
     body.appendChild(roster);
-    if (cheer) body.appendChild(el('p', { class: 'hint', text: '🎉 おうえんの ゲルぴよが かけつけて くれます！' }));
+    if (cheer) body.appendChild(el('p', { class: 'hint', html: UI.rich(':party: おうえんの ゲルぴよが かけつけて くれます！') }));
 
     UI.modal({
-      title: '⚔ せめこむ？',
+      title: ':sword: せめこむ？',
       body,
       buttons: [
         { label: 'やめる', cls: 'btn-ghost' },
@@ -6125,7 +6720,10 @@ window.GP = window.GP || {};
     St.persist();
     UI.refreshHud();
     UI.rerender();
-    if (st.tiles && St.shares().player === 0) { st.ended = 'lose'; GP.main.showEnding(); }
+    if (st.tiles && St.shares().player === 0) { st.ended = 'lose'; st.endedBy = 'wipeout'; st.endedDay = st.day; }
+    // けっちゃく ずみ（タイムリミットなど）なら ここで リザルトを だす。
+    // あとまわしに すると、けっちゃく に きづかない まま あそべて しまう
+    if (st.ended) { St.persist(); setTimeout(() => GP.main.showEnding(), 400); }
   }
 
   /* =========================================================
@@ -6179,13 +6777,13 @@ window.GP = window.GP || {};
     const body = el('div');
     body.appendChild(el('h4', {
       style: 'text-align:center;font-size:20px;margin-bottom:8px;color:' + (win ? '#3D9E6A' : '#C05340'),
-      text: win ? 'しょうり！ 🎉' : 'ざんねん…',
+      html: UI.rich(win ? 'しょうり！ :party:' : 'ざんねん…'),
     }));
 
     const row = el('div', { class: 'cost-row' });
     D.RES_ORDER.concat(['kakera']).forEach((k) => {
       if (!gained[k]) return;
-      row.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + gained[k]));
+      row.appendChild(el('span', { class: 'cost', html: GP.icons.res(k) + ' +' + gained[k] }));
     });
     if (row.children.length) {
       body.appendChild(el('h3', { class: 'panel-title', text: 'てにいれた もの' }));
@@ -6195,8 +6793,8 @@ window.GP = window.GP || {};
 
     if (drop) {
       body.appendChild(el('div', { class: 'panel', style: 'background:#FFF3D0' }, [
-        el('div', { class: 'panel-title', text: '🎁 そうびを ひろった！' }),
-        el('p', { class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px', text: drop.ico + ' ' + drop.name }),
+        el('div', { class: 'panel-title', html: UI.rich(':tabGacha: そうびを ひろった！') }),
+        el('p', { class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px', html: UI.rich(':' + drop.ico + ': ' + drop.name) }),
       ]));
     }
 
@@ -6211,7 +6809,7 @@ window.GP = window.GP || {};
           el('span', { class: 'log-day', text: '↑' }), el('span', { class: 'log-txt', text: txt }),
         ]));
       });
-      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', text: '🌱 せいちょう' }));
+      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', html: UI.rich(':hiroba: せいちょう') }));
       body.appendChild(ul);
     }
 
@@ -6245,7 +6843,7 @@ window.GP = window.GP || {};
     body.appendChild(head);
 
     // おくりもの
-    body.appendChild(el('h3', { class: 'panel-title', text: '🎁 おくりものを する' }));
+    body.appendChild(el('h3', { class: 'panel-title', html: UI.rich(':tabGacha: おくりものを する') }));
     const gifts = el('div', { class: 'build-list' });
     D.GIFTS.forEach((g) => {
       const ok = St.canPay(g.cost);
@@ -6260,7 +6858,7 @@ window.GP = window.GP || {};
           St.persist(); UI.closeModal(); openDiplomacy(facId); render(); UI.refreshHud();
         },
       }, [
-        el('span', { class: 'build-ico', text: g.ico }),
+        el('span', { class: 'build-ico', html: GP.icons.svg(g.ico) }),
         el('span', { class: 'build-info' }, [
           el('h4', { text: g.name }),
           el('p', { text: 'なかよし度 およそ +' + g.up }),
@@ -6271,11 +6869,11 @@ window.GP = window.GP || {};
     body.appendChild(gifts);
 
     // おねがい
-    body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:12px', text: '🤝 おねがいごと' }));
+    body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:12px', html: UI.rich(':handshake: おねがいごと') }));
     const acts = el('div', { class: 'build-list' });
 
     acts.appendChild(actBtn({
-      ico: '🤙', name: 'お約束（平和条約）',
+      ico: 'promise', name: 'お約束（平和条約）',
       desc: D.DIPLO.pactDays + '日 おたがい せめこまない',
       need: D.DIPLO.pactNeed, fav: fs.fav,
       onDo: () => {
@@ -6286,7 +6884,7 @@ window.GP = window.GP || {};
       },
     }));
     acts.appendChild(actBtn({
-      ico: '📣', name: 'おうえんを たのむ',
+      ico: 'megaphone', name: 'おうえんを たのむ',
       desc: 'つぎの この あいてとの バトルに なかまが 1ぴき くわわる',
       need: D.DIPLO.cheerNeed, fav: fs.fav,
       onDo: () => {
@@ -6297,7 +6895,7 @@ window.GP = window.GP || {};
       },
     }));
     acts.appendChild(actBtn({
-      ico: '🏳', name: '区画を ゆずって もらう',
+      ico: 'flag', name: '区画を ゆずって もらう',
       desc: 'いちばん まもりの よわい 区画を ゆずって もらう',
       need: D.DIPLO.cedeNeed, fav: fs.fav,
       onDo: () => {
@@ -6325,7 +6923,7 @@ window.GP = window.GP || {};
           St.persist(); UI.closeModal(); render(); UI.refreshHud();
         },
       }, [
-        el('span', { class: 'build-ico', text: cfg.ico }),
+        el('span', { class: 'build-ico', html: GP.icons.svg(cfg.ico) }),
         el('span', { class: 'build-info' }, [
           el('h4', { text: cfg.name }),
           el('p', { text: cfg.desc }),
@@ -6463,7 +7061,7 @@ window.GP = window.GP || {};
     const row = el('div', { class: 'cost-row' });
     D.RES_ORDER.forEach((k) => {
       if (!off.gained[k]) return;
-      row.appendChild(el('span', { class: 'cost' }, D.RES[k].ico + ' +' + off.gained[k]));
+      row.appendChild(el('span', { class: 'cost', html: GP.icons.res(k) + ' +' + off.gained[k] }));
     });
     if (!row.children.length && !off.days) { if (after) after(); return; }
     const h = off.hours;
@@ -6476,7 +7074,7 @@ window.GP = window.GP || {};
     if (row.children.length) body.appendChild(row);
     if (off.days) {
       body.appendChild(el('div', { class: 'panel', style: 'background:#FFF3D0;margin-bottom:0' }, [
-        el('div', { class: 'panel-title', text: `📅 ながい るすで 日づけが ${off.days}日 すすんだ` }),
+        el('div', { class: 'panel-title', html: UI.rich(`:calendar: ながい るすで 日づけが ${off.days}日 すすんだ`) }),
         el('p', {
           class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
           text: `DAY ${off.dayFrom} → DAY ${off.dayTo}。まいにちの しゅうかくは うけとりずみ。` +
@@ -6485,7 +7083,7 @@ window.GP = window.GP || {};
       ]));
       if (off.revoked) {
         body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
-          el('div', { class: 'panel-title', text: '😱 しょうりが くつがえった！' }),
+          el('div', { class: 'panel-title', html: UI.rich(':shock: しょうりが くつがえった！') }),
           el('p', {
             class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
             text: 'ぜんぶの 区画を せいあつ して いたのに、るす中に とりかえされて しまいました。'
@@ -6499,7 +7097,7 @@ window.GP = window.GP || {};
           .map((x) => `「${x.name}」→ ${D.FACTIONS[x.fac].name}${x.revived ? '（ふっかつ！）' : ''}`)
           .join('、');
         body.appendChild(el('div', { class: 'panel', style: 'background:#FFECE8;margin-bottom:0' }, [
-          el('div', { class: 'panel-title', text: `⚠ るす中に 区画を ${stolen.length}こ のっとられた！` }),
+          el('div', { class: 'panel-title', html: UI.rich(`:warn: るす中に 区画を ${stolen.length}こ のっとられた！`) }),
           el('p', {
             class: 'hint', style: 'margin:0;color:#4A3A2C;font-size:13px',
             text: names + (stolen.length > 3 ? ' など。' : '。') +
@@ -6509,7 +7107,7 @@ window.GP = window.GP || {};
       }
     }
     UI.modal({
-      title: '🏡 おかえりなさい！',
+      title: ':house: おかえりなさい！',
       body,
       buttons: [{ label: 'うけとる', cls: 'btn-accent' }],
       onClose: () => {
@@ -6525,10 +7123,10 @@ window.GP = window.GP || {};
   function showHowTo() {
     const body = el('div');
     const sec = (t, items) => {
-      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', text: t }));
+      body.appendChild(el('h3', { class: 'panel-title', style: 'margin-top:10px', html: UI.rich(t) }));
       const ul = el('ul', { class: 'log-list' });
       items.forEach((x) => ul.appendChild(el('li', {}, [
-        el('span', { class: 'log-day', text: '・' }), el('span', { class: 'log-txt', text: x }),
+        el('span', { class: 'log-day', text: '・' }), el('span', { class: 'log-txt', html: UI.rich(x) }),
       ])));
       body.appendChild(ul);
     };
@@ -6536,24 +7134,24 @@ window.GP = window.GP || {};
       class: 'hint',
       text: 'ゲルぴよ団の リーダーに なって、こうえんを そだてながら ライバルと なわばりを あらそう シミュレーションです。',
     }));
-    sec('🏞 こうえん（ないせい）', [
+    sec(':tabPark: こうえん（ないせい）', [
       'あきちを タップして ゆうぐを たてる。ゆうぐが ざいりょうを うみ、ごきげん度も あがる。',
       'ごきげん度が たかいほど せいさんも せんとうりょくも アップ。ひくいと だだっこストライキ！',
       '「つぎの日へ」で しゅうかく＋ライバルの こうどう。1日 1回 すすむ。',
       'ブラウザを とじても るすばん せいさんが たまります（さいだい 8時間ぶん）。8時間を こえると 8時間ごとに 日づけが 1日 すすみ、まもりの いちばん よわい 区画を 区画が いちばん すくない 勢力に 1日 1こ のっとられます（ぜんめつした 勢力は ここで ふっかつ／さいごの 1マスは あんぜん）。',
     ]);
-    sec('🗺 なわばり', [
-      'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき ⚡を 1 つかう。',
+    sec(':tabMap: なわばり', [
+      'じぶんの 区画の となりを タップ → 「せめこむ」で バトル。げんき :genki:を 1 つかう。',
       'かてば 区画を せいあつ。ざいりょう・けいけんち・そうびが てにはいる。',
       'ライバルには 「こうしょう」で おやつを おくって なかよく なれる。お約束（不可侵）や 区画の じょうと も。',
       'まけると 区画を とられて ごきげん度も さがる。まもりを かためて そなえよう。',
     ]);
-    sec('🐣 なかま・スカウト', [
-      'やくわりの あいしょう：そっこう ▶ えんきょり ▶ ぼうぎょ ▶ そっこう（3すくみ）。',
+    sec(':tabSquad: なかま・スカウト', [
+      'やくわりの あいしょう：そっこう → えんきょり → ぼうぎょ → そっこう（3すくみ）。',
       'さくせん（とつげき／まもり／とりかこみ）で バトルの うごきが かわる。',
-      'スカウトで なかまを あつめ、そうび と かけら 🧩で そだてる。Lv5・12・20 で しんか！',
+      'スカウトで なかまを あつめ、そうび と かけら :kakera:で そだてる。Lv5・12・20 で しんか！',
     ]);
-    sec('🏁 しょうり じょうけん', [
+    sec(':trophy: しょうり じょうけん', [
       'すべての 区画を せいあつ すれば しょうり。',
       // あそびかたは タイトルからも ひらくので、ゲーム中は いまの リミットを だす
       (St.st
@@ -6591,19 +7189,19 @@ window.GP = window.GP || {};
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(showHowTo, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '📖' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('book') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'あそびかた' }), el('p', { text: 'ルールを もういちど よむ' })]),
     ]));
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { St.persist(); UI.toast('セーブしました', 'good'); },
     }, [
-      el('span', { class: 'build-ico', text: '💾' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('save') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'いま セーブする' }), el('p', { text: 'ふだんは じどうで ほぞんされます' })]),
     ]));
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(askNotify, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '🔔' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('bell') }),
       el('span', { class: 'build-info' }, [
         el('h4', { text: 'おしらせを うけとる' }),
         el('p', { text: 'ごきげんが ななめに なったら おしらせ（PWA通知）' }),
@@ -6612,13 +7210,13 @@ window.GP = window.GP || {};
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(() => { showTitle(); }, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '🏠' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('house') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'タイトルへ もどる' }), el('p', { text: 'しんこうは ほぞんされます' })]),
     ]));
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(startNew, 120); },
     }, [
-      el('span', { class: 'build-ico', text: '🔄' }),
+      el('span', { class: 'build-ico', html: GP.icons.svg('refresh') }),
       el('span', { class: 'build-info' }, [el('h4', { text: 'さいしょから' }), el('p', { text: 'セーブデータを けして やりなおす' })]),
     ]));
     body.appendChild(btns);
@@ -6714,7 +7312,7 @@ window.GP = window.GP || {};
     foot.push({ label: 'さいしょから', cls: 'btn-accent', onClick: () => { shownEnding = ''; setTimeout(startNew, 120); } });
 
     UI.modal({
-      title: win ? '🏆 クリア！' : 'ゲーム しゅうりょう',
+      title: win ? ':trophy: クリア！' : 'ゲーム しゅうりょう',
       body, noClose: true, buttons: foot,
     });
   }
@@ -6761,6 +7359,7 @@ window.GP = window.GP || {};
     GP.squad.init();
     GP.gacha.init();
     GP.battle.init();
+    GP.icons.fillStatic();
     GP.worldmap.init();
 
     $('#btn-newgame').addEventListener('click', startNew);

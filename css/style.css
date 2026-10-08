@@ -156,7 +156,16 @@ ul{margin:0;padding:0;list-style:none}
 .hud-res{gap:4px}
 .res{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;
   background:#fff;border-radius:10px;padding:4px 2px;box-shadow:0 2px 0 var(--line);min-width:0}
-.res-ico{font-size:13px}
+.res-ico{font-size:15px;display:flex}
+/* ベクターアイコン（icons.js）。文字の おおきさに あわせる */
+svg.ico{width:1.2em;height:1.2em;display:inline-block;vertical-align:-0.25em;flex:0 0 auto}
+.ico-wrap{display:inline-flex;line-height:0}
+.res-ico svg.ico,.tab-ico svg.ico,.plot-ico svg.ico,.build-ico svg.ico,.tac-ico svg.ico,.kigen-face svg.ico{width:1em;height:1em;vertical-align:0}
+.tab-ico svg.ico{width:1.25em;height:1.25em}
+.plot-ico svg.ico{width:1.35em;height:1.35em}
+.tac-ico svg.ico{width:1.35em;height:1.35em}
+.kigen-face svg.ico{width:1.15em;height:1.15em}
+.tac.is-on .tac-ico svg.ico{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff)}
 .res-num{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
 .res-genki{background:#FFF6D8}
 .res.is-bump{animation:bump .45s ease}
@@ -508,3 +517,4 @@ canvas.piyo3d{display:block;margin:0 auto}
   .title-piyos{height:100px}
   .logo-main{font-size:38px}
 }
+.btn small .ico-wrap,.btn .ico-wrap{display:inline-flex;vertical-align:-0.2em}

@@ -17,9 +17,16 @@ window.GP = window.GP || {};
   /* =========================================================
      トースト
      ========================================================= */
+  /** 文字列の なかの :name: を アイコン(SVG)に する。ほかの 文字は エスケープ */
+  function rich(str) {
+    const esc = String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return esc.replace(/:([A-Za-z][A-Za-z0-9]*):/g, (m, n) => (GP.icons.has(n) ? GP.icons.svg(n) : m));
+  }
+
   function toast(text, kind) {
     const root = $('#toast-root');
-    const t = el('div', { class: 'toast ' + (kind || ''), text });
+    const t = el('div', { class: 'toast ' + (kind || ''), html: rich(text) });
     root.appendChild(t);
     setTimeout(() => {
       t.classList.add('out');
@@ -33,7 +40,7 @@ window.GP = window.GP || {};
      ========================================================= */
   function modal(cfg) {
     const root = $('#modal-root');
-    $('#modal-title').textContent = cfg.title || '';
+    $('#modal-title').innerHTML = rich(cfg.title || '');
     const body = $('#modal-body');
     body.innerHTML = '';
     if (typeof cfg.body === 'string') body.innerHTML = cfg.body;
@@ -76,10 +83,10 @@ window.GP = window.GP || {};
      HUD
      ========================================================= */
   const KIGEN_FACE = [
-    [0, '😖'], [26, '😠'], [40, '😕'], [58, '😊'], [78, '😄'], [92, '🤩'],
+    [0, 'face0'], [26, 'face1'], [40, 'face2'], [58, 'face3'], [78, 'face4'], [92, 'face5'],
   ];
   function kigenFace(v) {
-    let f = '😊';
+    let f = 'face3';
     KIGEN_FACE.forEach((k) => { if (v >= k[0]) f = k[1]; });
     return f;
   }
@@ -106,7 +113,7 @@ window.GP = window.GP || {};
 
     const k = st.kigen;
     $('#kigen-val').textContent = k;
-    $('#kigen-face').textContent = kigenFace(k);
+    $('#kigen-face').innerHTML = GP.icons.svg(kigenFace(k));
     const fill = $('#kigen-fill');
     fill.style.width = k + '%';
     fill.classList.toggle('is-low', St.isStriking());
@@ -159,8 +166,8 @@ window.GP = window.GP || {};
     const row = el('div', { class: 'cost-row' });
     Object.keys(cost).forEach((k) => {
       const lack = (St.st.res[k] || 0) < cost[k];
-      row.appendChild(el('span', { class: 'cost' + (lack ? ' lack' : '') },
-        D.RES[k].ico + ' ' + cost[k]));
+      row.appendChild(el('span', { class: 'cost' + (lack ? ' lack' : ''),
+        html: GP.icons.res(k) + ' ' + cost[k] }));
     });
     return row;
   }
@@ -168,7 +175,7 @@ window.GP = window.GP || {};
   function costText(cost) {
     return Object.keys(cost).map((k) => {
       const lack = (St.st.res[k] || 0) < cost[k];
-      return `<span class="${lack ? 'lack' : ''}">${D.RES[k].ico}${cost[k]}</span>`;
+      return `<span class="${lack ? 'lack' : ''}">${GP.icons.res(k)}${cost[k]}</span>`;
     }).join('');
   }
 
@@ -192,7 +199,7 @@ window.GP = window.GP || {};
   function yieldText(y) {
     const keys = Object.keys(y).filter((k) => y[k] > 0);
     if (!keys.length) return 'なし';
-    return keys.map((k) => D.RES[k].ico + '+' + U.round(y[k], 1)).join(' ');
+    return keys.map((k) => GP.icons.res(k) + '+' + U.round(y[k], 1)).join(' ');
   }
 
   /* =========================================================
@@ -212,7 +219,7 @@ window.GP = window.GP || {};
   GP.ui = {
     toast, modal, closeModal, isModalOpen,
     refreshHud, tab, rerender, register, init,
-    piyoEl, costRow, costText, roleChip, statLine, kv, yieldText, kigenFace,
+    piyoEl, costRow, costText, roleChip, statLine, kv, yieldText, kigenFace, rich,
     get current() { return current; },
   };
 })(window.GP);

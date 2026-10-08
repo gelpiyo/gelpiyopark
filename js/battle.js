@@ -530,7 +530,7 @@ window.GP = window.GP || {};
       ctx.fillStyle = '#9BE7A5';
       const y = f.y - t * 26;
       ctx.font = '900 22px system-ui, sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('♥', f.x, y);
+      GP.icons.paint(ctx, 'heart', f.x, y - 7, 20);
     }
     ctx.restore();
   }
@@ -676,14 +676,14 @@ window.GP = window.GP || {};
           const a = view.units[ev.id], d = view.units[ev.target];
           d.hp = ev.hp;
           view.fx.push({ kind: 'heal', x: d.px, y: d.py - 20, life: 1, dur: 0.7 });
-          pushLog(`${a.name} が ${d.name} を おうえん！ ❤+${ev.amt}`, 'heal');
+          pushLog(`${a.name} が ${d.name} を おうえん！ ${GP.icons.svg('heart')}+${ev.amt}`, 'heal');
           refreshHpBars();
           await wait(260);
           break;
         }
         case 'debuff': {
           const d = view.units[ev.id];
-          view.floats.push({ text: '⚔↓', x: d.px - 14, y: d.py - 30, life: 1, color: '#C8A2F0' });
+          view.floats.push({ text: '攻↓', x: d.px - 14, y: d.py - 30, life: 1, color: '#C8A2F0' });
           await wait(120);
           break;
         }

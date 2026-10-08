@@ -169,8 +169,8 @@ window.GP = window.GP || {};
       st.pendingScout = null;                    // かくてい したので ほぞんを けす
       St.persist();
       UI.refreshHud();
-      if (kept) UI.toast(`なかまが ${kept}ぴよ ふえた！` + (gotKakera ? `　🧩+${gotKakera}` : ''), 'good');
-      else UI.toast(`🧩 かけら +${gotKakera}`, 'good');
+      if (kept) UI.toast(`なかまが ${kept}ぴよ ふえた！` + (gotKakera ? `　:kakera:+${gotKakera}` : ''), 'good');
+      else UI.toast(`:kakera: かけら +${gotKakera}`, 'good');
     };
 
     const body = el('div');
@@ -220,13 +220,13 @@ window.GP = window.GP || {};
     const dk = D.RULES.dupKakera;
     body.appendChild(el('p', {
       class: 'hint',
-      text: `にがすと かけらに なります（N🧩${dk.N}／R🧩${dk.R}／SR🧩${dk.SR}）。` +
-        'なかまが いっぱいの ときや おなじ子が 3びき いるときも かけらに なります。',
+      html: UI.rich(`にがすと かけらに なります（N:kakera:${dk.N}／R:kakera:${dk.R}／SR:kakera:${dk.SR}）。` +
+        'なかまが いっぱいの ときや おなじ子が 3びき いるときも かけらに なります。'),
     }));
 
     const best = items.reduce((a, x) =>
       D.RARITY[x.sp.rar].star > D.RARITY[a.sp.rar].star ? x : a, items[0]);
-    const title = D.RARITY[best.sp.rar].star === 3 ? '✨ SR が でた！' : 'スカウト けっか';
+    const title = D.RARITY[best.sp.rar].star === 3 ? ':sparkle: SR が でた！' : 'スカウト けっか';
 
     UI.modal({
       title, body,

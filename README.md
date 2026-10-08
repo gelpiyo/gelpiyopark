@@ -25,11 +25,11 @@ Taica「ゲルぴよ」を題材にした **スマホWebブラウザ向けシミ
 Service Worker と manifest を効かせる場合は `http://` で配信してください。
 
 ```bash
-python -m http.server 8123
+node tools/serve.mjs 8123
 ```
 
 ブラウザで `http://localhost:8123/` を開きます。
-スマホで試す場合は同じLAN内から `http://<PCのIP>:8123/` へ。
+スマホで試す場合は `node tools/serve.mjs 8123 lan` で起動し、同じLAN内から `http://<PCのIP>:8123/` へ。
 
 ### 3. 開発用ショートカット
 
@@ -69,6 +69,7 @@ gelpiyopark/
 │   ├── data.js             ★マスタデータ（施設/ぴよ/装備/勢力/地形/区画/定数）
 │   ├── piyodata.js         実機3Dモデル（tools/mesh.mjs で自動生成・50KB）
 │   ├── piyo.js             ゲルぴよ描画（SVG/Canvas 2D ＋ 実機3Dビュー WebGL）
+│   ├── icons.js            ゲーム内アイコン62種（1つの定義から SVG と Canvas を出力）
 │   ├── hex.js              ヘックス座標計算
 │   ├── state.js            ゲーム状態・経済・AI・日送り（DOM非依存）
 │   ├── ui.js               HUD・タブ・モーダル・トースト
@@ -86,6 +87,7 @@ gelpiyopark/
     ├── mesh.mjs            実機GLTFモデル → piyodata.js 変換（軽量化・量子化）
     ├── outline.mjs         3Dモデル正面図 → 2D描画用シルエット抽出
     ├── icons.mjs           PWAアイコン生成（いまの ぴよ・プレイヤーカラーに追従）
+    ├── serve.mjs           ローカル配信サーバ（node だけで動く。`lan` 付きで実機確認用）
     ├── sim.mjs             ロジックの自動テスト＆バランス確認
     ├── e2e.mjs             ブラウザ操作の通しテスト（CDP）
     └── shot.mjs            画面のスクリーンショット取得（CDP）

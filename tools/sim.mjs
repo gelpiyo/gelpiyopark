@@ -258,6 +258,29 @@ function unitTests(GP) {
   ok(st8.day === stoppedAt + 1,
     'えんちょうせんでは 日が すすむ（' + stoppedAt + ' → ' + st8.day + '）');
 
+  // リミット日の けっちゃく後でも、ぜんめつ ボーナスで リミットが のびたら つづく
+  // （ぼうえい戦で リザルトが あとまわしに なって いる あいだの せめこみ）
+  const st9 = St.newGame();
+  st9.day = St.dayLimitNow();
+  St.nextDay({ noPlayerAttack: true });
+  ok(st9.ended !== null && st9.endedBy === 'time', 'リミット日で いったん けっちゃく する');
+  Object.keys(st9.tiles).forEach((id) => { if (st9.tiles[id].owner === 'red') st9.tiles[id].owner = 'player'; });
+  const gotLate = St.checkWipe(true);
+  ok(gotLate.length === 1, 'けっちゃく後でも ぜんめつは けんちされる');
+  ok(st9.ended === null && st9.endedBy === '', 'リミットが のびたので けっちゃくが とりけされる');
+  const dayBefore = st9.day;
+  St.nextDay({ noPlayerAttack: true });
+  ok(st9.day === dayBefore + 1,
+    'つぎの日へ すすめる（DAY ' + dayBefore + ' → ' + st9.day + '）');
+
+  // ぜん制圧の かちは ボーナスでは とりけされない
+  const st10 = St.newGame();
+  Object.keys(st10.tiles).forEach((id) => { st10.tiles[id].owner = 'player'; });
+  St.nextDay({ noPlayerAttack: true });
+  ok(st10.ended === 'win' && st10.endedBy === 'conquest', 'ぜん制圧で かち');
+  st10.wiped = {}; St.checkWipe(true);
+  ok(st10.ended === 'win', 'ぜん制圧の かちは そのまま のこる');
+
   return fails;
 }
 

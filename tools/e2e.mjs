@@ -287,6 +287,21 @@ await step('なかま詳細を ひらいても 一意', `(()=>{
   GP.ui.closeModal();
   return dup.length ? 'NG 重複'+dup.length+'件' : 'OK '+ids.length+'個すべて一意';})()`);
 
+/* ---------- アイコンは すべて ベクター（絵文字なし） ---------- */
+await step('画面に 絵文字が のこって いない', `(()=>{
+  const re=new RegExp(String.fromCharCode(92)+'p{Extended_Pictographic}','u');
+  const reAll=new RegExp(re.source,'gu'), hits=[];
+  for(const tab of ['park','map','squad','gacha']){
+    document.querySelector('[data-tab="'+tab+'"]').click();
+    const t=document.getElementById('app')?.innerText || document.body.innerText;
+    const m=t.match(reAll); if(m) hits.push(tab+':'+[...new Set(m)].join(''));
+  }
+  GP.main.showMenu(); const mt=document.getElementById('modal-root').innerText;
+  if(re.test(mt)) hits.push('menu'); GP.ui.closeModal();
+  document.querySelector('[data-tab="park"]').click();
+  const svgs=document.querySelectorAll('svg.ico').length;
+  return hits.length ? 'NG '+hits.join(' / ') : 'OK（svg.ico '+svgs+'こ）';})()`);
+
 /* ---------- けっちゃく画面の ボタン ---------- */
 await step('ぜん制圧の クリアは つづけられる', `(()=>{
   const St=GP.state, st=St.st;
