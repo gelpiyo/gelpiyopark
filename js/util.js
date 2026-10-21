@@ -50,7 +50,12 @@ window.GP = window.GP || {};
     return String(n);
   }
 
-  /* ---------- 乱数（シード付き mulberry32）---------- */
+  /* ---------- 乱数（シード付き mulberry32）----------
+     出典: Mulberry32 PRNG — Tommy Ettinger (2017), CC0 1.0（パブリックドメイン）
+       https://gist.github.com/tommyettinger/46a874533244883189143505d203312c
+     JavaScript 版: bryc "PRNGs"（パブリックドメイン）を もとに した
+       https://github.com/bryc/code/blob/master/jshash/PRNGs.md
+     f() の 中の 4行が mulberry32 本体。int / pick / chance / shuffle は じぶんで たした もの */
   function makeRng(seed) {
     let a = (seed >>> 0) || 1;
     const f = function () {

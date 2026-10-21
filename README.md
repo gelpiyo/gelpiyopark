@@ -161,3 +161,17 @@ node tools/build.mjs
 
 案件定義書の技術要件との差分と、本番実装への移行方針は `docs/仕様書.md` の
 「案件定義書との対応」にまとめています。
+
+---
+
+## 外部コード・出典
+
+外部ライブラリ（npm・CDN・Webフォント）は使っていません。ツールの import も Node 標準モジュールのみです。
+他者の公開コード・解説をもとにした箇所は次の2つで、ソースにも出典を記載しています。
+
+| 箇所 | もとにしたもの | ライセンス |
+| --- | --- | --- |
+| `js/util.js` の `makeRng`（乱数） | Mulberry32 — Tommy Ettinger（[gist](https://gist.github.com/tommyettinger/46a874533244883189143505d203312c)）／JavaScript 版 bryc "[PRNGs](https://github.com/bryc/code/blob/master/jshash/PRNGs.md)" | CC0 1.0／パブリックドメイン |
+| `js/hex.js`（ヘックス座標の計算） | Amit Patel "[Hexagonal Grids](https://www.redblobgames.com/grids/hexagons/)", Red Blob Games | 数式・擬似コードを参考に独自実装 |
+
+ゲルぴよの3D形状（`js/piyodata.js` ほか）は、Taica 提供の `gelpyto_3D_mod.gltf` から変換したデータです。

@@ -1,6 +1,11 @@
 /* =========================================================
    hex.js — ヘックス（六角マス）の 座標計算
    pointy-top（とがった上）／ axial 座標 (q, r) を つかう
+
+   出典: 座標変換・まるめ（cube rounding）・odd-r offset 変換・きょりの 式は
+     Amit Patel "Hexagonal Grids", Red Blob Games を さんこうに した
+     https://www.redblobgames.com/grids/hexagons/
+   （数式と 擬似コードを もとに この プロジェクトの かきかたで 実装）
    ========================================================= */
 window.GP = window.GP || {};
 
