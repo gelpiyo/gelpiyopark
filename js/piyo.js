@@ -1003,4 +1003,6 @@ void main(){
   function has3d() { return !!GP.piyoMesh; }
 
   GP.piyo = { svg, node, looksOf, factionLooks, paint, hsl, view3d, has3d };
+  /** Godot版の けんしょう用（tools/export-art.mjs）：3Dメッシュと そうびパーツを そのまま かえす */
+  GP.piyo._mesh3d = { decode: decodeMesh, acc: (id) => (ACC3D[id] ? ACC3D[id]() : null), accIds: () => Object.keys(ACC3D) };
 })(window.GP);
