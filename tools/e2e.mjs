@@ -302,6 +302,11 @@ await step('画面に 絵文字が のこって いない', `(()=>{
   const svgs=document.querySelectorAll('svg.ico').length;
   return hits.length ? 'NG '+hits.join(' / ') : 'OK（svg.ico '+svgs+'こ）';})()`);
 
+/* ---------- せいせき：テストの決着で手元の記録を汚さない（最後に戻す） ---------- */
+await step('せいせき：テストまえに たいひ', `(()=>{
+  window.__history=localStorage.getItem(GP.util.HISTORY_KEY);
+  localStorage.removeItem(GP.util.HISTORY_KEY); return GP.util.loadHistory().length;})()`);
+
 /* ---------- けっちゃく画面の ボタン ---------- */
 await step('ぜん制圧の クリアは つづけられる', `(()=>{
   const St=GP.state, st=St.st;
@@ -334,6 +339,71 @@ await step('  はいぼくも「つづきを あそぶ」なし', `(()=>{
   GP.ui.closeModal(); st.ended=null; st.endedBy='';
   return JSON.stringify({buttons:btns, つづける:btns.some(b=>/つづき/.test(b)),
     あんない:/おしまい/.test(hint||'')});})()`);
+
+/* ---------- せいせき（けっちゃくの きろく） ---------- */
+await step('せいせき：つづけた クリアは きろく しない', `(()=>{
+  const St=GP.state, h=GP.util.loadHistory(), r=h[0]||{};
+  const ok=h.length===2 && r.levelTotal===St.parkLevelTotal() && r.daysUsed===St.st.day
+    && r.dayLimit===St.dayLimitNow() && r.unitAvgLv===St.unitAvgLv() && r.defenseTotal===St.defenseTotal()
+    && r.score===St.resultScore({...r, daysLeft:Math.max(0,r.dayLimit-r.daysUsed), lvSum:St.unitLvSum(), unitCount:St.st.units.length})
+    && Math.abs(Date.now()-r.at)<60000;
+  return (ok?'OK ':'NG ')+JSON.stringify({件数:h.length, さいしん:r});})()`);
+await step('せいせき：スコアの しき', `(()=>{
+  const St=GP.state, S=St.resultScore, st=St.st, base={levelTotal:10, daysLeft:6, defenseTotal:100};
+  const avg25=S({...base, lvSum:10, unitCount:4}), avg7of3=S({...base, lvSum:7, unitCount:3});
+  const noDays=S({...base, daysLeft:0, lvSum:10, unitCount:4}), noUnits=S({...base, lvSum:0, unitCount:0});
+  const keepDay=st.endedDay; st.endedDay=St.dayLimitNow()+5;
+  const overtime=St.resultRecord(0).score; st.endedDay=keepDay;
+  const ok=avg25===15000 && avg7of3===14000 && noDays===0 && noUnits===0 && overtime===0;
+  return (ok?'OK ':'NG ')+JSON.stringify({avg25, avg7of3, noDays, noUnits, overtime});})()`);
+await step('せいせき：クリアで さいしょからを えらぶと きろく', `(async()=>{
+  const St=GP.state, st=St.st, keep={};
+  Object.keys(st.tiles).forEach(id=>{ keep[id]=st.tiles[id].owner; st.tiles[id].owner='player'; });
+  st.ended='win'; st.endedBy='conquest'; st.endedDay=st.day;
+  const n0=GP.util.loadHistory().length;
+  GP.main.showEnding();
+  const n1=GP.util.loadHistory().length;
+  [...document.querySelectorAll('#modal-foot .btn')].find(b=>/さいしょから/.test(b.textContent)).click();
+  const r=GP.util.loadHistory()[0];
+  await new Promise(res=>setTimeout(res,400));
+  const stop=[...document.querySelectorAll('#modal-foot .btn')].find(b=>/やめる/.test(b.textContent));
+  if(stop) stop.click();
+  Object.keys(keep).forEach(id=>{ st.tiles[id].owner=keep[id]; });
+  St.checkWipe(false); st.ended=null; st.endedBy=''; st.overtime=false; St.persist();
+  const expect=St.resultScore({...r, daysLeft:Math.max(0,r.dayLimit-r.daysUsed), lvSum:St.unitLvSum(), unitCount:st.units.length});
+  const ok=n1===n0 && GP.util.loadHistory().length===n0+1 && r.defenseTotal>0 && r.score===expect && r.score>0;
+  return (ok?'OK ':'NG ')+JSON.stringify({ひょうじ時:n1-n0, さいしょから後:GP.util.loadHistory().length-n0, score:r.score});})()`, 900);
+await step('せいせき：つづきからで 2じゅう きろく しない', `(async()=>{
+  const St=GP.state, st=St.st;
+  st.ended='timeup'; st.endedBy='time'; st.endedDay=st.day;
+  GP.main.showEnding(); GP.ui.closeModal();
+  const n1=GP.util.loadHistory().length;
+  St.persist(); GP.main.showTitle(); document.getElementById('btn-continue').click();
+  await new Promise(r=>setTimeout(r,900));
+  const n2=GP.util.loadHistory().length, shown=document.getElementById('modal-title').textContent;
+  GP.ui.closeModal(); St.st.ended=null; St.st.endedBy=''; St.persist();
+  return (n2===n1?'OK ':'NG ')+JSON.stringify({n1,n2,shown});})()`, 1200);
+await step('せいせき：さいきん 5けん まで・あたらしい じゅん', `(()=>{
+  const U=GP.util, max=GP.data.RULES.resultHistoryMax;
+  const list=[1,2,3,4,5,6,7].reduce((l,i)=>U.pushHistory(l,{at:i},max),[]);
+  const ok=list.length===max && list[0].at===7 && list[max-1].at===3;
+  return (ok?'OK ':'NG ')+list.map(r=>r.at).join(',');})()`);
+await step('せいせき：メニューから ひらける', `(()=>{
+  GP.main.showMenu();
+  const item=[...document.querySelectorAll('#modal-root .build-item')].find(b=>/せいせき/.test(b.textContent));
+  if(!item) return 'NG ボタンなし';
+  item.click(); return 'clicked';})()`, 600);
+await step('  せいせき ウィンドウの 中身', `(()=>{
+  const title=document.getElementById('modal-title').textContent;
+  const items=document.querySelectorAll('#modal-root .history-item');
+  const first=items[0]?items[0].innerText.replace(/\\s+/g,' '):'';
+  GP.ui.closeModal();
+  const ok=/せいせき/.test(title) && items.length===4 && /スコア [\\d,]+/.test(first) && /まもり ごうけい/.test(first);
+  return (ok?'OK ':'NG ')+JSON.stringify({title,件数:items.length,first});})()`);
+await step('せいせき：テストあとに もどす', `(()=>{
+  const U=GP.util;
+  if(window.__history===null) localStorage.removeItem(U.HISTORY_KEY); else localStorage.setItem(U.HISTORY_KEY, window.__history);
+  return U.loadHistory().length;})()`);
 
 /* ---------- メニュー・セーブ ---------- */
 await step('メニュー', `(()=>{document.getElementById('btn-menu').click();

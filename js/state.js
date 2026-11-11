@@ -333,6 +333,39 @@ window.GP = window.GP || {};
   /** いまの タイムリミット（ライバル ぜんめつ ボーナス こみ） */
   function dayLimitNow() { return R.dayLimit + (S.data.dayBonus || 0); }
 
+  function parkLevelTotal() {
+    return S.data.plots.reduce((sum, p) => sum + (p ? p.lv : 0), 0);
+  }
+
+  function unitLvSum() {
+    return S.data.units.reduce((sum, u) => sum + u.lv, 0);
+  }
+
+  function unitAvgLv() {
+    const count = S.data.units.length;
+    return count ? unitLvSum() / count : 0;
+  }
+
+  function defenseTotal() {
+    return ownedTileIds().reduce((sum, id) => sum + tileDefense(id), 0);
+  }
+
+  // 平均Lvの割り算を最後に回し、整数のまま掛ける（小数の誤差で1点ずれない）。点は窓口が受け付ける 0以上の整数
+  function resultScore({ levelTotal, daysLeft, lvSum, unitCount, defenseTotal: def }) {
+    return unitCount ? Math.floor(levelTotal * daysLeft * lvSum * def / unitCount) : 0;
+  }
+
+  function resultRecord(at_ms) {
+    const st = S.data;
+    const r = {
+      at: at_ms, levelTotal: parkLevelTotal(), daysUsed: st.endedDay || st.day, dayLimit: dayLimitNow(),
+      unitAvgLv: unitAvgLv(), defenseTotal: defenseTotal(),
+    };
+    // 延長戦の決着は期限を過ぎているので、のこり日数をマイナスにしない
+    const daysLeft = Math.max(0, r.dayLimit - r.daysUsed);
+    return { ...r, score: resultScore({ ...r, daysLeft, lvSum: unitLvSum(), unitCount: st.units.length }) };
+  }
+
   /**
    * ライバル勢力の ぜんめつ はんてい。
    * 所有が かわりうる ところ すべてから よぶ（せめこみ・がいこう・AI・るす中）。
@@ -746,7 +779,7 @@ window.GP = window.GP || {};
     canPay, pay, gain, lackList, log,
     addEquip, equipFree, setEquip, unitById, teamUnits, teamPower, alertNeighbors,
     tileById, tileNeighborIds, attackableIds, shares, tileDefense, enemyPower,
-    dayLimitNow, checkWipe,
+    dayLimitNow, checkWipe, parkLevelTotal, unitLvSum, unitAvgLv, defenseTotal, resultScore, resultRecord,
     nextDay, applyOffline,
   };
 })(window.GP);

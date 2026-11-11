@@ -216,6 +216,15 @@ window.GP = window.GP || {};
       el('span', { class: 'build-info' }, [el('h4', { text: 'あそびかた' }), el('p', { text: 'ルールを もういちど よむ' })]),
     ]));
     btns.appendChild(el('button', {
+      class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(showHistory, 120); },
+    }, [
+      el('span', { class: 'build-ico', html: GP.icons.svg('trophy') }),
+      el('span', { class: 'build-info' }, [
+        el('h4', { text: 'せいせき' }),
+        el('p', { text: `さいきん ${D.RULES.resultHistoryMax}かいの けっちゃくの きろく` }),
+      ]),
+    ]));
+    btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { St.persist(); UI.toast('セーブしました', 'good'); },
     }, [
       el('span', { class: 'build-ico', html: GP.icons.svg('save') }),
@@ -250,6 +259,49 @@ window.GP = window.GP || {};
     }));
 
     UI.modal({ title: 'メニュー', body });
+  }
+
+  /* =========================================================
+     せいせき（けっちゃくの きろく）
+     ========================================================= */
+  // 「つづきから」で同じ決着を表示しなおしても二重に記録しないよう、記録した決着をセーブに残す
+  function recordResult(key) {
+    const st = St.st;
+    if (st.recordedEnding === key) return;
+    st.recordedEnding = key;
+    const rec = St.resultRecord(Date.now());
+    U.saveHistory(U.pushHistory(U.loadHistory(), rec, D.RULES.resultHistoryMax));
+    St.persist();
+  }
+
+  // スコアの計算が入る前に保存された記録は、内訳が欠けているので「—」にする
+  const orDash = (v, show) => (v === undefined || v === null ? '—' : show(v));
+
+  function historyRows(rec) {
+    return [
+      ['ゆうぐ レベル ごうけい', String(rec.levelTotal)],
+      ['かかった 日すう', rec.daysUsed + '日'],
+      ['きげん', rec.dayLimit + '日'],
+      ['なかまの へいきん Lv', orDash(rec.unitAvgLv, (v) => String(U.round(v, 2)))],
+      ['なわばりの まもり ごうけい', orDash(rec.defenseTotal, String)],
+    ];
+  }
+
+  function historyItem(rec, index) {
+    const box = el('div', { class: 'history-item' });
+    box.appendChild(el('h4', { text: `${index + 1}. ${U.formatDateTime(rec.at)}` }));
+    box.appendChild(el('p', { class: 'history-score', text: 'スコア ' + orDash(rec.score, (v) => v.toLocaleString('ja-JP')) }));
+    historyRows(rec).forEach(([k, v]) => box.appendChild(UI.kv(k, v)));
+    return box;
+  }
+
+  function showHistory() {
+    const list = U.loadHistory();
+    const body = el('div');
+    body.appendChild(el('p', { class: 'hint', text: `けっちゃく した ときの きろくを さいきん ${D.RULES.resultHistoryMax}かいぶん のこします。` }));
+    if (!list.length) body.appendChild(el('p', { class: 'hint', text: 'まだ きろくが ありません。' }));
+    list.forEach((rec, i) => body.appendChild(historyItem(rec, i)));
+    UI.modal({ title: ':trophy: せいせき', body, buttons: [{ label: 'とじる', cls: 'btn-primary' }] });
   }
 
   /* =========================================================
@@ -310,6 +362,8 @@ window.GP = window.GP || {};
     const canContinue = st.endedBy
       ? st.endedBy === 'conquest'
       : (st.ended === 'win' && sh.player === D.TILES.length);
+    // 続けられる決着は「つづきを あそぶ」なら記録しないので、「さいしょから」を選んだときに記録する
+    if (!canContinue) recordResult(key);
     if (!canContinue) {
       body.appendChild(el('p', {
         class: 'hint', style: 'margin-top:10px',
@@ -332,7 +386,7 @@ window.GP = window.GP || {};
         },
       });
     }
-    foot.push({ label: 'さいしょから', cls: 'btn-accent', onClick: () => { shownEnding = ''; setTimeout(startNew, 120); } });
+    foot.push({ label: 'さいしょから', cls: 'btn-accent', onClick: () => { recordResult(key); shownEnding = ''; setTimeout(startNew, 120); } });
 
     UI.modal({
       title: win ? ':trophy: クリア！' : 'ゲーム しゅうりょう',
@@ -428,7 +482,7 @@ window.GP = window.GP || {};
     showTitle();
   }
 
-  GP.main = { boot, showEnding, showHowTo, showMenu, showTitle };
+  GP.main = { boot, showEnding, showHowTo, showMenu, showTitle, showHistory };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

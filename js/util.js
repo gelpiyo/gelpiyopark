@@ -109,6 +109,35 @@ window.GP = window.GP || {};
     try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; }
   }
 
+  // セーブとは別キー：「さいしょから」でセーブを消しても成績は残す
+  const HISTORY_KEY = 'gelpiyo-park-history-v1';
+
+  function loadHistory() {
+    try {
+      const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      console.warn('load history failed: ' + HISTORY_KEY, e);
+      return [];
+    }
+  }
+  function saveHistory(list) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      console.warn('save history failed: ' + HISTORY_KEY, e);
+      return false;
+    }
+  }
+  const pushHistory = (list, rec, max) => [rec, ...list].slice(0, max);
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  function formatDateTime(at_ms) {
+    const d = new Date(at_ms);
+    return `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
   /* ---------- その他 ---------- */
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -145,6 +174,7 @@ window.GP = window.GP || {};
     $, $$, el, esc, clamp, lerp, round, fmt,
     makeRng, rnd, sleep, uid,
     save, load, wipe, hasSave, SAVE_KEY,
+    loadHistory, saveHistory, pushHistory, HISTORY_KEY, formatDateTime,
     fitCanvas, canvasPoint,
   };
 })(window.GP);

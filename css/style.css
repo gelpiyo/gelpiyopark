@@ -479,6 +479,9 @@ button.result-cell:active{transform:scale(.95)}
   padding:6px 0;border-bottom:1px dashed var(--line);color:var(--ink-soft)}
 .kv:last-child{border-bottom:none}
 .kv b{color:var(--ink)}
+.history-item{background:#fff;border-radius:var(--r-md);padding:8px 12px;margin-top:8px;box-shadow:0 3px 0 var(--line)}
+.history-item h4{font-size:13px;font-weight:900;margin:0 0 2px}
+.history-score{font-size:20px;font-weight:900;color:var(--accent-deep);margin:0 0 2px}
 .build-list{display:flex;flex-direction:column;gap:8px}
 .build-item{display:flex;gap:10px;align-items:center;background:#fff;border-radius:var(--r-md);
   padding:10px;box-shadow:0 3px 0 var(--line);border:none;text-align:left;width:100%}

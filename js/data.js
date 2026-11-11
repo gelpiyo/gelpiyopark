@@ -365,6 +365,7 @@ window.GP = window.GP || {};
     strikeAt:    26,       // これ未満で だだっこストライキ
     offlineCapH: 8,        // 放置ボーナスの じょうげん（時間）
     offlineRate: 0.5,     // 放置中は 1日ぶんの何%か（1時間 = 1日 あつかい）
+    resultHistoryMax: 5,
   };
 
   GP.data = {
