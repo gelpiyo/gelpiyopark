@@ -481,6 +481,22 @@ button.result-cell:active{transform:scale(.95)}
   padding:6px 0;border-bottom:1px dashed var(--line);color:var(--ink-soft)}
 .kv:last-child{border-bottom:none}
 .kv b{color:var(--ink)}
+.history-item{background:#fff;border-radius:var(--r-md);padding:8px 12px;margin-top:8px;box-shadow:0 3px 0 var(--line)}
+.history-item h4{font-size:13px;font-weight:900;margin:0 0 2px}
+.history-score{font-size:20px;font-weight:900;color:var(--accent-deep);margin:0 0 2px}
+.hint-ink{font-size:13px;color:var(--ink)}
+.hint-ng{color:var(--ng)}
+.online-lead{font-size:14px;font-weight:900;color:var(--accent-deep);margin:4px 0 8px}
+.online-section{margin-top:14px}
+.text-input{display:block;width:100%;margin:8px 0 4px;padding:12px 14px;border:2px solid var(--line);
+  border-radius:var(--r-md);background:#fff;color:var(--ink);font:inherit;font-size:16px;font-weight:800}
+.text-input:focus{outline:none;border-color:var(--blue)}
+.form-error{min-height:18px;margin:4px 0;font-size:12px;font-weight:800;line-height:1.5;color:var(--ng)}
+.code-card{background:#fff;border:2px solid var(--line);border-radius:var(--r-md);padding:10px 12px}
+.code-text{font-size:24px;font-weight:900;text-align:center;letter-spacing:.06em;color:var(--ink);
+  overflow-wrap:anywhere;user-select:all;-webkit-user-select:all}
+.code-actions{display:flex;gap:8px;margin-top:8px}
+.code-actions .btn{flex:1}
 .build-list{display:flex;flex-direction:column;gap:8px}
 .build-item{display:flex;gap:10px;align-items:center;background:#fff;border-radius:var(--r-md);
   padding:10px;box-shadow:0 3px 0 var(--line);border:none;text-align:left;width:100%}
@@ -536,8 +552,9 @@ canvas.piyo3d{display:block;margin:0 auto}
       <button id="btn-continue" class="btn btn-primary btn-lg" type="button" hidden>つづきから</button>
       <button id="btn-newgame" class="btn btn-accent btn-lg" type="button">あたらしく はじめる</button>
       <button id="btn-howto" class="btn btn-ghost" type="button">あそびかた</button>
+      <button id="btn-account" class="btn btn-ghost" type="button" hidden>アカウント・ひきつぎ</button>
     </div>
-    <p class="title-note">Ver 0.2 ⓒ Taica Corporation</p>
+    <p class="title-note">Ver 0.3.1 Ⓒ Taica Corporation</p>
   </div>
 </div>
 
@@ -763,6 +780,10 @@ window.GP = window.GP || {};
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  /* ---------- 型 ---------- */
+  const isObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+  const asList = (v) => (Array.isArray(v) ? v : []);
+
   /* ---------- 数値 ---------- */
   const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -834,6 +855,35 @@ window.GP = window.GP || {};
     try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; }
   }
 
+  // セーブとは別キー：「さいしょから」でセーブを消しても成績は残す
+  const HISTORY_KEY = 'gelpiyo-park-history-v1';
+
+  function loadHistory() {
+    try {
+      const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      console.warn('load history failed: ' + HISTORY_KEY, e);
+      return [];
+    }
+  }
+  function saveHistory(list) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      console.warn('save history failed: ' + HISTORY_KEY, e);
+      return false;
+    }
+  }
+  const pushHistory = (list, rec, max) => [rec, ...list].slice(0, max);
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  function formatDateTime(at_ms) {
+    const d = new Date(at_ms);
+    return `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
   /* ---------- その他 ---------- */
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -867,9 +917,10 @@ window.GP = window.GP || {};
   }
 
   GP.util = {
-    $, $$, el, esc, clamp, lerp, round, fmt,
+    $, $$, el, esc, isObject, asList, clamp, lerp, round, fmt,
     makeRng, rnd, sleep, uid,
     save, load, wipe, hasSave, SAVE_KEY,
+    loadHistory, saveHistory, pushHistory, HISTORY_KEY, formatDateTime,
     fitCanvas, canvasPoint,
   };
 })(window.GP);
@@ -1242,6 +1293,7 @@ window.GP = window.GP || {};
     strikeAt:    26,       // これ未満で だだっこストライキ
     offlineCapH: 8,        // 放置ボーナスの じょうげん（時間）
     offlineRate: 0.5,     // 放置中は 1日ぶんの何%か（1時間 = 1日 あつかい）
+    resultHistoryMax: 5,
   };
 
   GP.data = {
@@ -1255,6 +1307,10 @@ window.GP = window.GP || {};
     TACTICS, GIFTS, DIPLO, EVENTS, RULES,
   };
 })(window.GP);
+
+/* ===== js/netconfig.js ===== */
+window.GP = window.GP || {};
+GP.netConfig = Object.freeze({ baseUrl: '', board: '' });
 
 /* ===== js/icons.js ===== */
 /* =========================================================
@@ -2846,6 +2902,8 @@ void main(){
   function has3d() { return !!GP.piyoMesh; }
 
   GP.piyo = { svg, node, looksOf, factionLooks, paint, hsl, view3d, has3d };
+  /** Godot版の けんしょう用（tools/export-art.mjs）：3Dメッシュと そうびパーツを そのまま かえす */
+  GP.piyo._mesh3d = { decode: decodeMesh, acc: (id) => (ACC3D[id] ? ACC3D[id]() : null), accIds: () => Object.keys(ACC3D) };
 })(window.GP);
 
 /* ===== js/hex.js ===== */
@@ -3286,6 +3344,39 @@ window.GP = window.GP || {};
   /** いまの タイムリミット（ライバル ぜんめつ ボーナス こみ） */
   function dayLimitNow() { return R.dayLimit + (S.data.dayBonus || 0); }
 
+  function parkLevelTotal() {
+    return S.data.plots.reduce((sum, p) => sum + (p ? p.lv : 0), 0);
+  }
+
+  function unitLvSum() {
+    return S.data.units.reduce((sum, u) => sum + u.lv, 0);
+  }
+
+  function unitAvgLv() {
+    const count = S.data.units.length;
+    return count ? unitLvSum() / count : 0;
+  }
+
+  function defenseTotal() {
+    return ownedTileIds().reduce((sum, id) => sum + tileDefense(id), 0);
+  }
+
+  // 平均Lvの割り算を最後に回し、整数のまま掛ける（小数の誤差で1点ずれない）。点は窓口が受け付ける 0以上の整数
+  function resultScore({ levelTotal, daysLeft, lvSum, unitCount, defenseTotal: def }) {
+    return unitCount ? Math.floor(levelTotal * daysLeft * lvSum * def / unitCount) : 0;
+  }
+
+  function resultRecord(at_ms) {
+    const st = S.data;
+    const r = {
+      at: at_ms, levelTotal: parkLevelTotal(), daysUsed: st.endedDay || st.day, dayLimit: dayLimitNow(),
+      unitAvgLv: unitAvgLv(), defenseTotal: defenseTotal(),
+    };
+    // 延長戦の決着は期限を過ぎているので、のこり日数をマイナスにしない
+    const daysLeft = Math.max(0, r.dayLimit - r.daysUsed);
+    return { ...r, score: resultScore({ ...r, daysLeft, lvSum: unitLvSum(), unitCount: st.units.length }) };
+  }
+
   /**
    * ライバル勢力の ぜんめつ はんてい。
    * 所有が かわりうる ところ すべてから よぶ（せめこみ・がいこう・AI・るす中）。
@@ -3662,10 +3753,13 @@ window.GP = window.GP || {};
     if (!S.data) return;
     S.data.lastSeen = Date.now();
     U.save(S.data);
+    if (GP.backup) GP.backup.markDirty();
   }
+  const isLoadable = (d) => !!d && d.v === 1;
+  function unload() { S.data = null; }
   function restore() {
     const d = U.load();
-    if (!d || d.v !== 1) return null;
+    if (!isLoadable(d)) return null;
     // 欠けている キーを おぎなう（バージョン差の 保険）
     d.res = Object.assign({}, R.startRes, d.res);
     d.stats = Object.assign({ battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 }, d.stats);
@@ -3692,14 +3786,14 @@ window.GP = window.GP || {};
   GP.state = {
     S,
     get st() { return S.data; },
-    newGame, restore, persist,
+    newGame, restore, persist, isLoadable, unload,
     makeUnit, unitName, unitStats, unitPower, giveXp, xpNeed, rollEvolution,
     plotsOpen, facilityAgg, ownedTileIds, tileYield, teamCap, rosterCap,
     kigenTarget, isStriking, prodMultiplier, income,
     canPay, pay, gain, lackList, log,
     addEquip, equipFree, setEquip, unitById, teamUnits, teamPower, alertNeighbors,
     tileById, tileNeighborIds, attackableIds, shares, tileDefense, enemyPower,
-    dayLimitNow, checkWipe,
+    dayLimitNow, checkWipe, parkLevelTotal, unitLvSum, unitAvgLv, defenseTotal, resultScore, resultRecord,
     nextDay, applyOffline,
   };
 })(window.GP);
@@ -3720,6 +3814,7 @@ window.GP = window.GP || {};
   const screens = {};       // 各画面の { render } を 登録する
   let current = 'park';
   let modalOnClose = null;
+  let modalLocked = false;
 
   /* =========================================================
      トースト
@@ -3745,6 +3840,13 @@ window.GP = window.GP || {};
   /* =========================================================
      モーダル
      ========================================================= */
+  // 返事を 待つ あいだは うしろの 画面も さわれなく する（Tab キーで 別の 画面へ 行かせない）
+  function setModalLock(on) {
+    modalLocked = on;
+    U.$$('body > :not(#modal-root):not(#toast-root):not(script)').forEach((n) => { n.inert = on; });
+  }
+
+  /** cfg.lock: true なら ✕・背景タップ・Esc の どれでも とじない（ボタンと closeModal() だけ） */
   function modal(cfg) {
     const root = $('#modal-root');
     $('#modal-title').innerHTML = rich(cfg.title || '');
@@ -3769,7 +3871,8 @@ window.GP = window.GP || {};
     });
     foot.hidden = !(cfg.buttons && cfg.buttons.length);
 
-    $('#modal-close').hidden = cfg.noClose === true;
+    setModalLock(cfg.lock === true);
+    $('#modal-close').hidden = cfg.noClose === true || modalLocked;
     modalOnClose = cfg.onClose || null;
     root.hidden = false;
     body.scrollTop = 0;
@@ -3780,10 +3883,12 @@ window.GP = window.GP || {};
     const root = $('#modal-root');
     if (root.hidden) return;
     root.hidden = true;
+    setModalLock(false);
     const cb = modalOnClose;
     modalOnClose = null;
     if (cb) cb();
   }
+  function dismissModal() { if (!modalLocked) closeModal(); }
   function isModalOpen() { return !$('#modal-root').hidden; }
 
   /* =========================================================
@@ -3916,10 +4021,10 @@ window.GP = window.GP || {};
     U.$$('.tab').forEach((b) => {
       b.addEventListener('click', () => tab(b.dataset.tab));
     });
-    $('#modal-close').addEventListener('click', closeModal);
-    $('#modal-backdrop').addEventListener('click', closeModal);
+    $('#modal-close').addEventListener('click', dismissModal);
+    $('#modal-backdrop').addEventListener('click', dismissModal);
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') dismissModal();
     });
   }
 
@@ -6984,6 +7089,838 @@ window.GP = window.GP || {};
   GP.worldmap = { init, render, defendBattle, openDiplomacy, stopLoop };
 })(window.GP);
 
+/* ===== js/net.js ===== */
+/* =========================================================
+   net.js — αTEST の 窓口との やりとり / アカウント / ひきつぎコード
+   かえり値は すべて {ok: true, data} か {ok: false, error, message}
+   （入口・項目名・断りの 名前は Godot版 godot/scripts/net/ranking_api.gd と おなじ）
+   ========================================================= */
+window.GP = window.GP || {};
+
+(function (GP) {
+  'use strict';
+  const { isObject, asList } = GP.util;
+
+  const CONFIG = GP.netConfig || { baseUrl: '', board: '' };
+  const TIMEOUT_MS = 15000;
+  const HTTP_OK_MIN = 200;
+  const HTTP_OK_MAX = 299;
+  const BYTES_PER_KIB = 1024;
+  // Chromium は keepalive の 本文が 64KiB を こえると 何も 送らずに 失敗する
+  const KEEPALIVE_MAX_BYTES = 60 * BYTES_PER_KIB;
+  const APP_VERSION = 'web';
+  const ACCOUNT_KEY = 'gelpiyo-park-account-v1';
+  const WEB_PROTOCOLS = ['http:', 'https:'];
+  const TEST_PROTOCOL = 'http:';
+  const LOOPBACK_HOSTS = ['127.0.0.1', 'localhost', '[::1]'];
+  const HEADLESS_UA = /HeadlessChrome/;
+  const ERROR_TEXT = {
+    network: 'つうしん できませんでした。でんぱの よい ところで もういちど ためしてね。',
+    offline: '窓口に つながない せっていで うごいています。',
+    bad_key: 'この端末の登録が使えなくなっています（別の端末で引き継いだ可能性）',
+    code_not_found: 'その ひきつぎコードは みつかりませんでした。',
+    bad_code: 'ひきつぎコードの かたちが ちがいます。',
+    too_many: 'ためしすぎです。10分ほど まってから もういちど ためしてね。',
+    too_large: 'セーブの ひかえが おおきすぎて おくれません。',
+  };
+
+  const byteLength = (text) => new TextEncoder().encode(text).length;
+  const fail = (error, message) => ({ ok: false, error, message });
+
+  // 中身（鍵が 入りうる）を ログに 出さない ため、よめない 理由は すてる
+  function parseObject(text) {
+    try {
+      const parsed = JSON.parse(text);
+      return isObject(parsed) ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /* =========================================================
+     つなぐか どうか
+     ========================================================= */
+  let testUrl = '';
+
+  // headless chrome は --remote-debugging-port だけでは webdriver が true に ならないので UA も 見る
+  const automated = () => navigator.webdriver === true || HEADLESS_UA.test(navigator.userAgent || '');
+  // 自動の 検査の 結果を 本番の 記録に 書かない
+  const configuredUrl = () => (automated() ? '' : CONFIG.baseUrl || '');
+
+  /** いまの 接続先。'' なら オフライン（窓口へ 1 回も 通信しない） */
+  function baseUrl() {
+    return WEB_PROTOCOLS.includes(location.protocol) ? (testUrl || configuredUrl()) : '';
+  }
+  const enabled = () => baseUrl() !== '';
+
+  /** テスト用：にせ窓口へ つなぐ。この端末の 中（ループバックの http）しか うけない */
+  function useTestServer(url) {
+    const u = new URL(url);
+    if (u.protocol !== TEST_PROTOCOL || !LOOPBACK_HOSTS.includes(u.hostname)) {
+      throw new Error('useTestServer: うけるのは ループバックの http だけ（' + LOOPBACK_HOSTS.join(' / ') + '）');
+    }
+    testUrl = u.origin;
+  }
+
+  /* =========================================================
+     通信
+     ========================================================= */
+  // 事前確認（CORS）で 止まらない よう、ヘッダーは この 2 つ いがい 付けない
+  function requestInit(method, body, key, keepalive) {
+    const hasBody = body !== undefined;
+    const text = hasBody ? JSON.stringify(body) : '';
+    const headers = {};
+    if (hasBody) headers['Content-Type'] = 'application/json';
+    if (key) headers.Authorization = 'Bearer ' + key;
+    const init = { method, headers };
+    if (hasBody) init.body = text;
+    if (keepalive === true && byteLength(text) <= KEEPALIVE_MAX_BYTES) init.keepalive = true;
+    return init;
+  }
+
+  function toResult(status, data, path) {
+    if (status >= HTTP_OK_MIN && status <= HTTP_OK_MAX) return { ok: true, data };
+    const error = typeof data.error === 'string' && data.error ? data.error : 'http_' + status;
+    const message = typeof data.message === 'string' ? data.message : `${path} で エラー（${status}）`;
+    return fail(error, message);
+  }
+
+  async function send(method, path, body, key, keepalive) {
+    const base = baseUrl();
+    if (!base) return fail('offline', `窓口の URL が ありません（${path}）`);
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(base + path, { ...requestInit(method, body, key, keepalive), signal: ctl.signal });
+      return toResult(res.status, parseObject(await res.text()), path);
+    } catch (e) {
+      return fail('network', `つうしん できませんでした（${path}${ctl.signal.aborted ? ' / じかんぎれ' : ''}）`);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  /* =========================================================
+     入口
+     ========================================================= */
+  const boardPath = () => '/v1/challenge/' + encodeURIComponent(CONFIG.board);
+
+  const register = (name) => send('POST', '/v1/players', { name });
+  const rename = (key, name) => send('PATCH', '/v1/me', { name }, key);
+  /** → {recoveryCode}。前の コードは 使えなくなる */
+  const reissueCode = (key) => send('POST', '/v1/me/code', {}, key);
+  /** → {playerId, name, deviceKey, save: {data, ...} か null}。前の端末の 鍵は すべて 消える */
+  const recover = (code) => send('POST', '/v1/recover', { code });
+  const startRun = (key) => send('POST', boardPath() + '/runs', {}, key);
+  const finishRun = (key, runId, payload) =>
+    send('POST', `${boardPath()}/runs/${encodeURIComponent(runId)}/finish`, payload, key);
+
+  /** data は JSON の 文字列（512KiB まで）→ {ok, size, updatedAt} */
+  function putBackup(key, data, opt) {
+    const body = { data, appVersion: APP_VERSION, savedAt: new Date().toISOString() };
+    return send('PUT', '/v1/save', body, key, !!opt && opt.keepalive === true);
+  }
+
+  /** この板の 受け付けの 決まり（minSec など）。開催の 外なら ok: false（not_open） */
+  async function boardRules() {
+    const res = await send('GET', '/v1/challenge/events');
+    if (!res.ok) return res;
+    const boards = asList(res.data.events)
+      .filter((ev) => isObject(ev) && ev.active)
+      .flatMap((ev) => asList(ev.boards));
+    const hit = boards.find((b) => isObject(b) && b.board === CONFIG.board);
+    return hit ? { ok: true, data: hit } : fail('not_open', 'いまは ランキングの 開催期間では ありません');
+  }
+
+  function explain(res) {
+    const error = (res && res.error) || '';
+    // constructor の ような どの オブジェクトにも ある 名前を、文言の 表の 項目と 取りちがえない
+    const known = Object.prototype.hasOwnProperty.call(ERROR_TEXT, error) ? ERROR_TEXT[error] : '';
+    return known || `${(res && res.message) || ''}（${error}）`;
+  }
+
+  /* =========================================================
+     アカウント（セーブとは べつの キー）
+     ========================================================= */
+  function readStoredAccount() {
+    try {
+      return parseObject(localStorage.getItem(ACCOUNT_KEY) || '');
+    } catch (e) {
+      console.warn('account load failed: ' + ACCOUNT_KEY, e);
+      return {};
+    }
+  }
+
+  /** この端末の アカウント。無い・いまの 接続先で 発行した ものでは ない → null */
+  function account() {
+    const base = baseUrl();
+    const acc = readStoredAccount();
+    const hasKey = typeof acc.deviceKey === 'string' && acc.deviceKey !== '';
+    // にせ窓口の 鍵を 本物へ、本物の 鍵を にせ窓口へ 送らない
+    return base && hasKey && acc.server === base ? acc : null;
+  }
+
+  /** いまの 接続先を server に きざんで 保存する。オフライン・保存できない ときは false */
+  function saveAccount(acc) {
+    const base = baseUrl();
+    if (!base || !isObject(acc)) return false;
+    try {
+      localStorage.setItem(ACCOUNT_KEY, JSON.stringify({ ...acc, server: base }));
+      return true;
+    } catch (e) {
+      console.warn('account save failed: ' + ACCOUNT_KEY, e);
+      return false;
+    }
+  }
+
+  /** 引き継ぎの 返事から この端末の アカウントを つくる（引き継いでも コードは かわらない） */
+  const accountFromRecover = (data, code) =>
+    ({ playerId: data.playerId || '', name: data.name || '', deviceKey: data.deviceKey || '', recoveryCode: code });
+
+  /* =========================================================
+     ひきつぎコード（英数 12 文字・XXXX-XXXX-XXXX。0・O・1・I は 使われない）
+     ========================================================= */
+  const CODE_LENGTH = 12;
+  const CODE_GROUP = 4;
+  const CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const FULLWIDTH_FIRST = 0xFF01;
+  const FULLWIDTH_LAST = 0xFF5E;
+  const FULLWIDTH_OFFSET = 0xFEE0;
+  const CODE_CHAR = /^[0-9A-Z]$/;
+
+  // 窓口は 全角を すてて 読んで しまうので、ここで 半角に そろえる
+  function halfWidth(c) {
+    const cp = c.codePointAt(0);
+    return cp >= FULLWIDTH_FIRST && cp <= FULLWIDTH_LAST ? String.fromCodePoint(cp - FULLWIDTH_OFFSET) : c;
+  }
+
+  // 1 文字ずつ 大文字に する（ß のように 2 文字に ふえる 字を コードの 一部に しない）
+  const normalized = (raw) =>
+    Array.from(String(raw), (c) => halfWidth(c).toUpperCase()).filter((c) => CODE_CHAR.test(c)).join('');
+
+  const isValid = (code) =>
+    typeof code === 'string' && code.length === CODE_LENGTH && Array.from(code).every((c) => CODE_ALPHABET.includes(c));
+
+  const formatted = (code) =>
+    Array.from({ length: Math.ceil(code.length / CODE_GROUP) }, (_, i) => code.slice(i * CODE_GROUP, (i + 1) * CODE_GROUP)).join('-');
+
+  GP.net = {
+    enabled, baseUrl, useTestServer,
+    get board() { return CONFIG.board || ''; },
+    register, rename, reissueCode, recover, putBackup, startRun, finishRun, boardRules, explain,
+    account, saveAccount, accountFromRecover, ACCOUNT_KEY,
+    code: { normalized, isValid, formatted, LENGTH: CODE_LENGTH },
+    byteLength, BYTES_PER_KIB, TIMEOUT_MS, KEEPALIVE_MAX_BYTES,
+  };
+})(window.GP);
+
+/* ===== js/backup.js ===== */
+/* =========================================================
+   backup.js — セーブの ひかえを 窓口へ じどうで おくる
+   ・かわってから 30びょう／裏へ 回る とき（よぶのは main.js）
+   ・中身が おなじなら おくらない／おくれなければ 60びょうごとに おくりなおす
+   ・よみもどすのは ひきつぎの ときだけ（restore）
+   （Godot版 godot/scripts/net/save_bundle.gd・save_backup.gd と おなじ ふるまい）
+   ========================================================= */
+window.GP = window.GP || {};
+
+(function (GP) {
+  'use strict';
+  const U = GP.util;
+  const St = GP.state;
+  const Net = GP.net;
+  const { isObject, asList } = U;
+
+  const FORMAT = 1;
+  // 窓口の SAVE_MAX と 同じ
+  const MAX_BYTES = 512 * Net.BYTES_PER_KIB;
+  const SEND_DELAY_MS = 30000;
+  const RETRY_MS = 60000;
+  const HASH = 'SHA-256';
+  const HEX_RADIX = 16;
+  const HEX_WIDTH = 2;
+  const REPLACED_KEY = 'gelpiyo-park-replaced-v1';
+  const STATUS_TEXT = {
+    failed: 'さいごの おくりは しっぱい しました。60びょうごとに おくりなおします。',
+    too_big: 'ひかえが おおきすぎて おくれません。',
+    no_save: 'まだ セーブが ありません。',
+  };
+
+  // status: idle / ok / failed / too_big / no_save / off（窓口に つながない）/ bad_key（別の端末で 引き継がれた）
+  const state = { status: 'idle', rejectedKey: '', timer: null, sending: null };
+
+  function parse(text) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function settle(status, result) {
+    state.status = status;
+    return result;
+  }
+
+  /* =========================================================
+     ひかえの かたち（Godot版と おなじ JSON。アカウントは 入れない）
+     ========================================================= */
+  /** セーブと せいせきを ひとつの 文字列に。セーブが オブジェクトで なければ '' */
+  function pack(save, history) {
+    return isObject(save) ? JSON.stringify({ format: FORMAT, save, history: asList(history) }) : '';
+  }
+
+  /** うけとった ひかえを ひらく → {save, history}。かたちが ちがえば null */
+  function unpack(text) {
+    const bundle = parse(text);
+    if (!isObject(bundle) || bundle.format !== FORMAT || !isObject(bundle.save)) return null;
+    return { save: bundle.save, history: asList(bundle.history) };
+  }
+
+  // lastSeen は 自動保存の たびに かわるので のぞく
+  const withoutLastSeen = (save) =>
+    (isObject(save) ? Object.fromEntries(Object.entries(save).filter(([k]) => k !== 'lastSeen')) : save);
+
+  const toHex = (byte) => byte.toString(HEX_RADIX).padStart(HEX_WIDTH, '0');
+
+  /** 中身が おなじかを この端末の 中で くらべる 印。つくれない 環境では ''（＝ 毎回 おくる） */
+  async function digest(save, history) {
+    const text = JSON.stringify([withoutLastSeen(save), asList(history)]);
+    try {
+      const hash = await crypto.subtle.digest(HASH, new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(hash), toHex).join('');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /* =========================================================
+     おくる
+     ========================================================= */
+  function startTimer(delay_ms) {
+    if (state.timer !== null) clearTimeout(state.timer);
+    state.timer = setTimeout(() => { state.timer = null; sendNow(); }, delay_ms);
+  }
+
+  // 20びょうごとの 自動保存で 先のばしに ならない よう、うごいて いる あいだは かけなおさない
+  function markDirty() {
+    if (state.timer === null) startTimer(SEND_DELAY_MS);
+  }
+
+  function canSend(acc) {
+    if (!Net.enabled() || !acc) return settle('off', false);
+    if (!U.hasSave()) return settle('no_save', false);
+    return acc.deviceKey !== state.rejectedKey;
+  }
+
+  // 返事を 待つ あいだに 引き継ぎで アカウントが かわって いたら 書かない
+  function afterPut(res, key, mark) {
+    const acc = Net.account();
+    if (!acc || acc.deviceKey !== key) return;
+    if (res.ok) {
+      Net.saveAccount({ ...acc, backupAt: Date.now(), backupDigest: mark });
+      state.status = 'ok';
+    } else if (res.error === 'bad_key') {
+      state.rejectedKey = key;
+      state.status = 'bad_key';
+    } else if (res.error === 'too_large') {
+      state.status = 'too_big';
+    } else {
+      state.status = 'failed';
+      startTimer(RETRY_MS);
+    }
+  }
+
+  async function trySend(acc, keepalive) {
+    const save = U.load();
+    const history = U.loadHistory();
+    const mark = await digest(save, history);
+    if (mark !== '' && mark === acc.backupDigest) return settle('ok', true);
+    const data = pack(save, history);
+    if (data === '') return settle('failed', false);
+    if (Net.byteLength(data) > MAX_BYTES) return settle('too_big', false);
+    const res = await Net.putBackup(acc.deviceKey, data, { keepalive });
+    afterPut(res, acc.deviceKey, mark);
+    return res.ok;
+  }
+
+  async function sendOnce(acc, keepalive) {
+    try {
+      return await trySend(acc, keepalive);
+    } catch (e) {
+      console.warn('backup send failed: /v1/save', e && e.name);
+      return settle('failed', false);
+    }
+  }
+
+  /** 窓口が いまの 中身を もっていれば true（おなじ 中身で おくらなかった ときも true） */
+  async function sendNow(opt) {
+    // 二重に 送らない：送って いる 最中の 呼び出しは 終わるのを 待つ
+    while (state.sending) await state.sending;
+    const acc = Net.account();
+    if (!canSend(acc)) return false;
+    state.sending = sendOnce(acc, !!opt && opt.keepalive === true);
+    try {
+      return await state.sending;
+    } finally {
+      state.sending = null;
+    }
+  }
+
+  const status = () => state.status;
+  const statusText = () =>
+    (state.status === 'bad_key' ? Net.explain({ error: 'bad_key' }) : STATUS_TEXT[state.status] || '');
+
+  /* =========================================================
+     ひきつぎ：うけとった ひかえで セーブと せいせきを おきかえる
+     ========================================================= */
+  // ひかえは 窓口から とどく（他人が 書ける）。画面は セーブの 値を innerHTML に 入れるので、HTML に なりうる 字（U.esc が かえる 字）は 通さない
+  function isInert(v) {
+    if (typeof v === 'string') return U.esc(v) === v;
+    if (Array.isArray(v)) return v.every((x) => isInert(x));
+    return !isObject(v) || Object.entries(v).every(([k, x]) => isInert(k) && isInert(x));
+  }
+
+  function isInertBundle(bundle) {
+    try {
+      return isInert(bundle.save) && isInert(bundle.history);
+    } catch (e) {
+      console.warn('backup check failed: 入れ子が 深すぎる ひかえ', e && e.name);
+      return false;
+    }
+  }
+
+  // storage イベントは ほかの タブにだけ とどく。あとに 何も のこさない よう、書いて すぐ 消す
+  function announceReplaced() {
+    try {
+      localStorage.setItem(REPLACED_KEY, String(Date.now()));
+      localStorage.removeItem(REPLACED_KEY);
+    } catch (e) {
+      console.warn('replace notice failed: ' + REPLACED_KEY, e && e.name);
+    }
+  }
+
+  /** bundle は unpack() の かえり値。よめない・あぶない セーブなら 何も 書かずに false */
+  function restore(bundle) {
+    if (!bundle || !St.isLoadable(bundle.save) || !isInertBundle(bundle)) return false;
+    if (!U.save(bundle.save)) return false;
+    // ほかの タブが ひらいた ままの 古い ゲームで 上書き されない ように
+    announceReplaced();
+    // 自動保存で 上書き されない ように いまの ゲームを 閉じる（つづきは タイトルの「つづきから」）
+    St.unload();
+    return U.saveHistory(asList(bundle.history));
+  }
+
+  GP.backup = {
+    pack, unpack, digest, markDirty, sendNow, status, statusText, restore,
+    FORMAT, MAX_BYTES, SEND_DELAY_MS, RETRY_MS, REPLACED_KEY,
+  };
+})(window.GP);
+
+/* ===== js/online.js ===== */
+/* =========================================================
+   online.js — ランキング / アカウントの 画面
+   ・startRanking(rec, done)：全制圧クリアの「さいしょから」で ランキングへ おくる
+   ・openAccount(onReplaced)：ひきつぎコード / セーブの ひかえ / べつの 端末からの ひきつぎ
+   返事を 待つ あいだの 窓は とじられない（UI.modal の lock）
+   （ながれ・文言は Godot版 godot/scripts/ui/ranking_flow.gd・account_flow.gd と おなじ）
+   ========================================================= */
+window.GP = window.GP || {};
+
+(function (GP) {
+  'use strict';
+  const U = GP.util;
+  const UI = GP.ui;
+  const St = GP.state;
+  const Net = GP.net;
+  const Backup = GP.backup;
+  const { el, isObject } = U;
+
+  const MS_PER_SEC = 1000;
+  const FOCUS_DELAY_MS = 60;
+  // maxlength は UTF-16 で 数える。絵文字の ような 2 つぶんの 字でも きまりの 文字数まで 入る ように
+  const UTF16_UNITS_PER_CHAR = 2;
+  const CLIENT_ERROR = { ok: false, error: 'client', message: 'がめんの しょりで エラーが おきました' };
+
+  /* =========================================================
+     ぶひん
+     ========================================================= */
+  const isPresent = (v) => v !== null && v !== undefined;
+  const thousands = (v) => (Number(v) || 0).toLocaleString('ja-JP');
+
+  const para = (text, cls) => el('p', { class: 'hint' + (cls ? ' ' + cls : ''), text });
+  const lead = (text) => el('p', { class: 'online-lead', text });
+  const sectionTitle = (text) => el('h3', { class: 'panel-title online-section', text });
+  const errorLine = (text) => el('p', { class: 'form-error', text });
+  // UI.kv は 値を innerHTML で 入れる。名前・番号は 人や 窓口が 書ける 文字列なので かならず エスケープ
+  const kvText = (k, v) => UI.kv(k, U.esc(v));
+  const wideButton = (label, onclick) => el('button', { class: 'btn btn-ghost btn-block', type: 'button', onclick }, label);
+  const smallButton = (label, onclick) => el('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick }, label);
+
+  function textInput(value, maxChars, placeholder) {
+    return el('input', {
+      class: 'text-input', type: 'text', value, placeholder, maxlength: String(maxChars * UTF16_UNITS_PER_CHAR),
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false',
+    });
+  }
+
+  const focusLater = (input) => setTimeout(() => input.focus(), FOCUS_DELAY_MS);
+
+  // 思わぬ 例外で とじられない 窓が のこらない ように、かならず つぎの 窓（onError）へ にがす
+  async function guarded(label, work, onError) {
+    try {
+      await work();
+    } catch (e) {
+      console.warn(label + ' failed', e && e.name);
+      onError(CLIENT_ERROR);
+    }
+  }
+
+  // 返事を 待つ あいだに 書きかわった ぶん（ひかえの 時刻など）を けさない ように、いまの 中身へ 足す
+  function patchAccount(acc, patch) {
+    const now = Net.account();
+    const next = { ...(now && now.deviceKey === acc.deviceKey ? now : acc), ...patch };
+    Net.saveAccount(next);
+    return next;
+  }
+
+  /* =========================================================
+     ランキング
+     ========================================================= */
+  // 札は 端末の 鍵が ないと もらえないので、はじめては 登録 → 札、登録ずみは 札 → 名前の 確認の 順
+  const RANK_TITLE = ':trophy: ランキング';
+  const NAME_MIN = 1;
+  const NAME_MAX = 20;
+  const DEFAULT_MIN_SEC = 3;
+  const WAIT_MARGIN_SEC = 0.5;
+  const DETAIL_KEYS = ['levelTotal', 'daysUsed', 'dayLimit', 'unitAvgLv', 'defenseTotal'];
+  // Web版は このあと「あたらしく はじめる？」の たしかめへ すすむ（Godot版の「タイトルへ」に あたる）
+  const RANK_NEXT_LABEL = 'つぎへ';
+
+  // 窓口と おなじく コードポイントで 数える
+  const isNameOk = (name) => Array.from(name).length >= NAME_MIN && Array.from(name).length <= NAME_MAX;
+
+  const rankModal = (body, buttons) => UI.modal({ title: RANK_TITLE, body, buttons, lock: true });
+  const rankBusy = (text) => rankModal(para(text, 'hint-ink'));
+
+  // つぎの 窓を done が ひらいても とじられない ように、ボタンには false を かえす
+  function rankClose(flow) {
+    if (flow.closed) return false;
+    flow.closed = true;
+    UI.closeModal();
+    flow.done();
+    return false;
+  }
+
+  const rankNextButton = (flow) => ({ label: RANK_NEXT_LABEL, cls: 'btn-primary', onClick: () => rankClose(flow) });
+
+  function rankFail(flow, res) {
+    const body = el('div', {}, [
+      para('ランキングに おくれませんでした。せいせきは この 端末に のこっています。', 'hint-ink'),
+      para(Net.explain(res)),
+    ]);
+    rankModal(body, [rankNextButton(flow)]);
+  }
+
+  const rankRun = (flow, work) => guarded('ranking flow: ' + Net.board, work, (res) => rankFail(flow, res));
+
+  async function takeTicket(flow, acc) {
+    const res = await Net.startRun(acc.deviceKey);
+    if (!res.ok) { rankFail(flow, res); return false; }
+    flow.runId = typeof res.data.runId === 'string' ? res.data.runId : '';
+    flow.runStarted_ms = performance.now();
+    return true;
+  }
+
+  async function rankBegin(flow) {
+    rankBusy('じゅんび しています…');
+    const rules = await Net.boardRules();
+    if (!rules.ok) { rankFail(flow, rules); return; }
+    const minSec = Number(rules.data.minSec);
+    flow.minSec = Number.isFinite(minSec) && minSec >= 0 ? minSec : DEFAULT_MIN_SEC;
+    const acc = Net.account();
+    if (!acc) {
+      rankAskName(flow, '', `ランキングに のせる 名前を きめてね（${NAME_MIN}〜${NAME_MAX}文字）。`);
+    } else if (await takeTicket(flow, acc)) {
+      rankAskName(flow, String(acc.name || ''), 'この 名前で ランキングに のせます。かえる ことも できます。');
+    }
+  }
+
+  function rankOnSubmit(flow, name, err) {
+    if (!isNameOk(name)) {
+      err.textContent = `名前は ${NAME_MIN}〜${NAME_MAX}文字に してね。`;
+      return false;
+    }
+    rankRun(flow, () => rankSubmit(flow, name));
+    return false;
+  }
+
+  function rankAskName(flow, prefill, hint) {
+    const input = textInput(prefill, NAME_MAX, 'なまえ');
+    const err = errorLine('');
+    rankModal(el('div', {}, [para(hint, 'hint-ink'), input, err]), [
+      { label: 'おくらない', cls: 'btn-ghost', onClick: () => rankClose(flow) },
+      { label: 'おくる', cls: 'btn-accent', onClick: () => rankOnSubmit(flow, input.value.trim(), err) },
+    ]);
+    // 名前が 入って いる ときは そのまま「おくる」を おせる ように、キーボードを 出さない
+    if (prefill === '') focusLater(input);
+  }
+
+  async function rankRegister(flow, name) {
+    const res = await Net.register(name);
+    if (!res.ok) { rankFail(flow, res); return null; }
+    Net.saveAccount(res.data);
+    flow.registered = true;
+    return res.data;
+  }
+
+  async function rankRename(flow, acc, name) {
+    const res = await Net.rename(acc.deviceKey, name);
+    if (!res.ok) { rankFail(flow, res); return null; }
+    return patchAccount(acc, { name });
+  }
+
+  // おくるのに つかう アカウント。だめなら null（失敗の 窓は 出しずみ）
+  async function rankAccountFor(flow, name) {
+    const acc = Net.account();
+    if (!acc) {
+      const fresh = await rankRegister(flow, name);
+      return fresh && (await takeTicket(flow, fresh)) ? fresh : null;
+    }
+    return name === acc.name ? acc : rankRename(flow, acc, name);
+  }
+
+  async function waitMinSec(flow) {
+    const need_ms = (flow.minSec + WAIT_MARGIN_SEC) * MS_PER_SEC - (performance.now() - flow.runStarted_ms);
+    if (need_ms > 0) await U.sleep(need_ms);
+  }
+
+  // 点は 0 以上の 整数（窓口の 決まり）。内訳は 後から 見比べる ため おくる
+  function rankPayload(flow) {
+    const detail = Object.fromEntries(DETAIL_KEYS.map((k) => [k, isPresent(flow.rec[k]) ? flow.rec[k] : null]));
+    return {
+      value: Math.max(0, Math.floor(Number(flow.rec.score) || 0)), cleared: true,
+      play_ms: Math.round(performance.now() - flow.runStarted_ms), detail,
+    };
+  }
+
+  async function rankSubmit(flow, name) {
+    rankBusy('おくっています…');
+    const acc = await rankAccountFor(flow, name);
+    if (!acc) return;
+    await waitMinSec(flow);
+    const res = await Net.finishRun(acc.deviceKey, flow.runId, rankPayload(flow));
+    if (!res.ok) { rankFail(flow, res); return; }
+    rankShowResult(flow, res.data, String(acc.name || name));
+  }
+
+  function rankRows(flow, data, name) {
+    const rows = [['なまえ', name], ['こんかいの スコア', thousands(flow.rec.score)]];
+    if (isPresent(data.best)) rows.push(['じこベスト', thousands(data.best)]);
+    if (isPresent(data.rank)) {
+      rows.push(['じゅんい', `${Math.floor(Number(data.rank) || 0)} い（${Math.floor(Number(data.participants) || 0)} にん中）`]);
+    }
+    return rows;
+  }
+
+  function rankShowResult(flow, data, name) {
+    const body = el('div', {}, [
+      lead('ランキングに おくりました！' + (data.improved === true ? '　じこベスト こうしん！' : '')),
+      ...rankRows(flow, data, name).map(([k, v]) => kvText(k, v)),
+    ]);
+    if (flow.registered) {
+      body.appendChild(para('ひきつぎコードは メニューの「アカウント・ひきつぎ」で 見られます。メモして おいてね。', 'hint-ink'));
+    }
+    rankModal(body, [rankNextButton(flow)]);
+  }
+
+  /** rec: St.resultRecord() の かえり値。done: どの 終わり方でも ちょうど 1 回 よぶ */
+  function startRanking(rec, done) {
+    // オフライン（1 ファイル版・自動の 検査）では 流れを 出さず、毎回 失敗の 窓を 出さない
+    if (!Net.enabled()) { done(); return; }
+    const flow = { rec, done, closed: false, runId: '', runStarted_ms: 0, minSec: DEFAULT_MIN_SEC, registered: false };
+    rankRun(flow, () => rankBegin(flow));
+  }
+
+  /* =========================================================
+     アカウント（ひきつぎコード / セーブの ひかえ / べつの 端末からの ひきつぎ）
+     ========================================================= */
+  // つぎの 窓を ひらく ボタンは false を かえす（もとの 窓の onClose を はしらせない）
+  const ACC_TITLE = ':save: アカウント';
+  const CODE_INPUT_MAX = 20;
+  const RESTORE_TEXT = {
+    replaced: 'セーブと せいせきを サーバーの ひかえから もどしました。タイトルの「つづきから」で あそべます。',
+    none: 'サーバーに ひかえが なかったので、この 端末の データは そのままです。',
+    broken: 'ひかえを よみこめなかったので、この 端末の データは そのままです。',
+  };
+
+  const accBusy = (text) => UI.modal({ title: ACC_TITLE, body: para(text, 'hint-ink'), lock: true });
+
+  function accFail(flow, leadText, res) {
+    UI.modal({
+      title: ACC_TITLE, onClose: () => accShowHome(flow),
+      body: el('div', {}, [para(leadText, 'hint-ink'), para(Net.explain(res))]),
+      buttons: [{ label: 'もどる', cls: 'btn-primary' }],
+    });
+  }
+
+  const accRun = (flow, work) =>
+    guarded('account flow', work, (res) => accFail(flow, 'しょりを つづけられませんでした。', res));
+
+  async function accCopy(code) {
+    try {
+      await navigator.clipboard.writeText(code);
+      UI.toast('ひきつぎコードを コピーしました', 'good');
+    } catch (e) {
+      UI.toast('コピー できませんでした。コードを メモしてね', 'bad');
+    }
+  }
+
+  function accCodeCard(flow, code) {
+    return el('div', { class: 'code-card' }, [
+      el('div', { class: 'code-text', text: code || '—' }),
+      el('div', { class: 'code-actions' }, [
+        smallButton('コピー', () => accCopy(code)),
+        smallButton('だしなおす', () => accConfirmReissue(flow)),
+      ]),
+    ]);
+  }
+
+  function accBackupLines(acc) {
+    const sentAt = Number.isFinite(acc.backupAt) ? U.formatDateTime(acc.backupAt) : 'まだ';
+    const sendDelay_sec = Backup.SEND_DELAY_MS / MS_PER_SEC;
+    return [
+      'さいごに おくった じかん：' + sentAt,
+      Backup.statusText(),
+      `ふだんは じどうで おくります（かわってから ${sendDelay_sec}びょう・ブラウザを とじた とき）。`,
+    ].filter((line) => line !== '');
+  }
+
+  function accAccountParts(flow, acc) {
+    return [
+      kvText('なまえ', String(acc.name || '')),
+      kvText('ばんごう', String(acc.playerId || '')),
+      sectionTitle('ひきつぎコード'),
+      accCodeCard(flow, String(acc.recoveryCode || '')),
+      para('きしゅへんこうや ブラウザの データを けした ときに つかいます。メモして、だれにも 見せないでね。'
+        + 'ブラウザの データを けすと、この コードでしか もどせません。'),
+      sectionTitle('セーブの ひかえ'),
+      ...accBackupLines(acc).map((line) => para(line, 'hint-ink')),
+      wideButton('いま ひかえを おくる', () => accRun(flow, () => accSendBackupNow(flow))),
+    ];
+  }
+
+  function accShowHome(flow) {
+    const acc = Net.account();
+    const body = el('div', {}, [
+      ...(acc ? accAccountParts(flow, acc)
+        : [para('まだ アカウントが ありません。ぜん制圧で クリアして ランキングに おくると つくられます。', 'hint-ink')]),
+      sectionTitle('べつの 端末から ひきつぐ'),
+      para('きしゅへんこうの ときは、あたらしい 端末で まえの 端末の ひきつぎコードを いれてね。'),
+      wideButton('ひきつぎコードを いれる', () => accAskCode(flow, '')),
+    ]);
+    UI.modal({ title: ACC_TITLE, body, buttons: [{ label: 'とじる', cls: 'btn-primary' }] });
+  }
+
+  async function accSendBackupNow(flow) {
+    accBusy('ひかえを おくっています…');
+    if (St.st) St.persist();
+    const ok = await Backup.sendNow();
+    UI.toast(ok ? 'ひかえを おくりました' : 'ひかえを おくれませんでした', ok ? 'good' : 'bad');
+    accShowHome(flow);
+  }
+
+  /* ---------- コードの 出し直し ---------- */
+  function accConfirmReissue(flow) {
+    UI.modal({
+      title: ACC_TITLE, onClose: () => accShowHome(flow),
+      body: para('あたらしい コードを だすと、いまの コードは つかえなく なります。', 'hint-ink'),
+      buttons: [
+        { label: 'やめる', cls: 'btn-ghost' },
+        { label: 'あたらしく だす', cls: 'btn-danger', onClick: () => { accRun(flow, () => accReissue(flow)); return false; } },
+      ],
+    });
+  }
+
+  async function accReissue(flow) {
+    accBusy('あたらしい コードを だしています…');
+    const acc = Net.account();
+    const res = await Net.reissueCode(acc ? acc.deviceKey : '');
+    const code = res.ok && typeof res.data.recoveryCode === 'string' ? res.data.recoveryCode : '';
+    if (!acc || code === '') {
+      accFail(flow, 'コードを だしなおせませんでした。', res.ok ? { error: 'bad_reply', message: '窓口の 返事に コードが ありません' } : res);
+      return;
+    }
+    patchAccount(acc, { recoveryCode: code });
+    UI.toast('あたらしい コードを だしました。メモしてね', 'good');
+    accShowHome(flow);
+  }
+
+  /* ---------- べつの 端末からの ひきつぎ ---------- */
+  function accOnCodeEntered(flow, raw, err) {
+    const code = Net.code.normalized(raw);
+    if (!Net.code.isValid(code)) {
+      err.textContent = `${Net.code.LENGTH}もじの コードを いれてね（0・O・1・I は つかわれて いません）。`;
+      return false;
+    }
+    accRun(flow, () => accRecover(flow, Net.code.formatted(code)));
+    return false;
+  }
+
+  function accAskCode(flow, errorText) {
+    const input = textInput('', CODE_INPUT_MAX, 'XXXX-XXXX-XXXX');
+    const err = errorLine(errorText);
+    const body = el('div', {}, [
+      para(`まえの 端末で メモした ひきつぎコード（${Net.code.LENGTH}もじ）を いれてね。`, 'hint-ink'),
+      para('この 端末の セーブ・せいせき・アカウントは、サーバーの ひかえに おきかわります。まえの 端末では つかえなく なります。', 'hint-ng'),
+      input, err,
+    ]);
+    UI.modal({
+      title: ACC_TITLE, body, onClose: () => accShowHome(flow),
+      buttons: [
+        { label: 'やめる', cls: 'btn-ghost' },
+        { label: 'ひきつぐ', cls: 'btn-accent', onClick: () => accOnCodeEntered(flow, input.value, err) },
+      ],
+    });
+    focusLater(input);
+  }
+
+  // アカウントを 書く まえに よぶ（新しい 鍵で この端末の ふるい データが 先に おくられない ように）
+  function accRestore(save) {
+    if (!isObject(save)) return 'none';
+    const bundle = Backup.unpack(typeof save.data === 'string' ? save.data : '');
+    return bundle && Backup.restore(bundle) ? 'replaced' : 'broken';
+  }
+
+  async function accRecover(flow, code) {
+    accBusy('ひきついでいます…');
+    const res = await Net.recover(code);
+    if (!res.ok) { accAskCode(flow, Net.explain(res)); return; }
+    const restored = accRestore(res.data.save);
+    Net.saveAccount(Net.accountFromRecover(res.data, code));
+    if (restored === 'replaced' && flow.onReplaced) flow.onReplaced();
+    accShowRecovered(flow, String(res.data.name || ''), restored);
+  }
+
+  function accShowRecovered(flow, name, restored) {
+    const body = el('div', {}, [
+      lead('ひきつぎ できました！'),
+      kvText('なまえ', name),
+      para(RESTORE_TEXT[restored], 'hint-ink'),
+      para('まえの 端末では、もう ランキングや ひかえが つかえません。'),
+    ]);
+    UI.modal({ title: ACC_TITLE, body, onClose: () => accShowHome(flow), buttons: [{ label: 'OK', cls: 'btn-primary' }] });
+  }
+
+  /** onReplaced: ひきつぎで この端末の データを おきかえた ときに よぶ（いまの ゲーム画面を とじて タイトルへ） */
+  function openAccount(onReplaced) {
+    if (!Net.enabled()) return;
+    accShowHome({ onReplaced });
+  }
+
+  GP.online = { startRanking, openAccount, NAME_MAX };
+})(window.GP);
+
 /* ===== js/main.js ===== */
 /* =========================================================
    main.js — きどう / タイトル / メニュー / エンディング
@@ -7027,7 +7964,13 @@ window.GP = window.GP || {};
     $('#title-screen').hidden = false;
     $('#app').hidden = true;
     $('#btn-continue').hidden = !U.hasSave();
+    $('#btn-account').hidden = !GP.net.enabled();
     renderTitlePiyos();
+  }
+
+  // ひきつぎで この端末の データが おきかわったら タイトルへ（「つづきから」で うけとった セーブを ひらく）
+  function showAccount() {
+    GP.online.openAccount(showTitle);
   }
 
   function enterGame(fresh) {
@@ -7203,6 +8146,23 @@ window.GP = window.GP || {};
       el('span', { class: 'build-info' }, [el('h4', { text: 'あそびかた' }), el('p', { text: 'ルールを もういちど よむ' })]),
     ]));
     btns.appendChild(el('button', {
+      class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(showHistory, 120); },
+    }, [
+      el('span', { class: 'build-ico', html: GP.icons.svg('trophy') }),
+      el('span', { class: 'build-info' }, [
+        el('h4', { text: 'せいせき' }),
+        el('p', { text: `さいきん ${D.RULES.resultHistoryMax}かいの けっちゃくの きろく` }),
+      ]),
+    ]));
+    if (GP.net.enabled()) {
+      btns.appendChild(el('button', {
+        class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(showAccount, 120); },
+      }, [
+        el('span', { class: 'build-ico', html: GP.icons.svg('lock') }),
+        el('span', { class: 'build-info' }, [el('h4', { text: 'アカウント・ひきつぎ' }), el('p', { text: 'ひきつぎコード・セーブの ひかえ' })]),
+      ]));
+    }
+    btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { St.persist(); UI.toast('セーブしました', 'good'); },
     }, [
       el('span', { class: 'build-ico', html: GP.icons.svg('save') }),
@@ -7237,6 +8197,50 @@ window.GP = window.GP || {};
     }));
 
     UI.modal({ title: 'メニュー', body });
+  }
+
+  /* =========================================================
+     せいせき（けっちゃくの きろく）
+     ========================================================= */
+  // 「つづきから」で同じ決着を表示しなおしても二重に記録しないよう、記録した決着をセーブに残す
+  function recordResult(key) {
+    const st = St.st;
+    if (st.recordedEnding === key) return;
+    st.recordedEnding = key;
+    const rec = St.resultRecord(Date.now());
+    U.saveHistory(U.pushHistory(U.loadHistory(), rec, D.RULES.resultHistoryMax));
+    St.persist();
+  }
+
+  // スコアの計算が入る前に保存された記録は、内訳が欠けているので「—」にする
+  const orDash = (v, show) => (v === undefined || v === null ? '—' : show(v));
+
+  function historyRows(rec) {
+    return [
+      ['ゆうぐ レベル ごうけい', String(rec.levelTotal)],
+      ['かかった 日すう', rec.daysUsed + '日'],
+      ['きげん', rec.dayLimit + '日'],
+      ['なかまの へいきん Lv', orDash(rec.unitAvgLv, (v) => String(U.round(v, 2)))],
+      ['なわばりの まもり ごうけい', orDash(rec.defenseTotal, String)],
+    ];
+  }
+
+  function historyItem(rec, index) {
+    const box = el('div', { class: 'history-item' });
+    box.appendChild(el('h4', { text: `${index + 1}. ${U.formatDateTime(rec.at)}` }));
+    box.appendChild(el('p', { class: 'history-score', text: 'スコア ' + orDash(rec.score, (v) => v.toLocaleString('ja-JP')) }));
+    // 記録は 引き継ぎで 窓口からも とどく。UI.kv は 値を innerHTML で 入れるので エスケープ
+    historyRows(rec).forEach(([k, v]) => box.appendChild(UI.kv(k, U.esc(v))));
+    return box;
+  }
+
+  function showHistory() {
+    const list = U.loadHistory();
+    const body = el('div');
+    body.appendChild(el('p', { class: 'hint', text: `けっちゃく した ときの きろくを さいきん ${D.RULES.resultHistoryMax}かいぶん のこします。` }));
+    if (!list.length) body.appendChild(el('p', { class: 'hint', text: 'まだ きろくが ありません。' }));
+    list.forEach((rec, i) => body.appendChild(historyItem(rec, i)));
+    UI.modal({ title: ':trophy: せいせき', body, buttons: [{ label: 'とじる', cls: 'btn-primary' }] });
   }
 
   /* =========================================================
@@ -7297,6 +8301,8 @@ window.GP = window.GP || {};
     const canContinue = st.endedBy
       ? st.endedBy === 'conquest'
       : (st.ended === 'win' && sh.player === D.TILES.length);
+    // 続けられる決着は「つづきを あそぶ」なら記録しないので、「さいしょから」を選んだときに記録する
+    if (!canContinue) recordResult(key);
     if (!canContinue) {
       body.appendChild(el('p', {
         class: 'hint', style: 'margin-top:10px',
@@ -7319,7 +8325,19 @@ window.GP = window.GP || {};
         },
       });
     }
-    foot.push({ label: 'さいしょから', cls: 'btn-accent', onClick: () => { shownEnding = ''; setTimeout(startNew, 120); } });
+    const restart = () => { setTimeout(startNew, 120); };
+    foot.push({
+      label: 'さいしょから', cls: 'btn-accent',
+      onClick: () => {
+        recordResult(key); shownEnding = '';
+        UI.closeModal();
+        // ランキングへ おくるのは ぜん制圧の クリアだけ
+        if (canContinue) GP.online.startRanking(St.resultRecord(Date.now()), restart);
+        else restart();
+        // ランキングの 窓を ボタンの あとしまつで とじさせない
+        return false;
+      },
+    });
 
     UI.modal({
       title: win ? ':trophy: クリア！' : 'ゲーム しゅうりょう',
@@ -7374,6 +8392,7 @@ window.GP = window.GP || {};
 
     $('#btn-newgame').addEventListener('click', startNew);
     $('#btn-howto').addEventListener('click', showHowTo);
+    $('#btn-account').addEventListener('click', showAccount);
     $('#btn-menu').addEventListener('click', showMenu);
     $('#btn-continue').addEventListener('click', () => {
       if (!St.restore()) { UI.toast('セーブデータが よめませんでした', 'bad'); return; }
@@ -7386,6 +8405,16 @@ window.GP = window.GP || {};
     window.addEventListener('pagehide', () => { if (St.st) St.persist(); });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && St.st) { St.persist(); maybeNotify(); }
+    });
+    // セーブの ひかえ：裏へ 回る ときに おくる（うえの St.persist() の あとで うごく）
+    const sendBackup = () => { GP.backup.sendNow({ keepalive: true }); };
+    window.addEventListener('pagehide', sendBackup);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) sendBackup(); });
+    // べつの タブが 引き継ぎで セーブを おきかえた：この タブの 古い ゲームで 上書きしない よう、閉じて 読みなおす
+    window.addEventListener('storage', (e) => {
+      if (e.key !== GP.backup.REPLACED_KEY || e.newValue === null) return;
+      St.unload();
+      location.reload();
     });
     registerSW();
 
@@ -7415,7 +8444,7 @@ window.GP = window.GP || {};
     showTitle();
   }
 
-  GP.main = { boot, showEnding, showHowTo, showMenu, showTitle };
+  GP.main = { boot, showEnding, showHowTo, showMenu, showTitle, showHistory, showAccount };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

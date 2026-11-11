@@ -4,6 +4,7 @@
    形は 窓口のソース（gelpiyo-api の src/app.js）に そろえた。データは メモリだけ（ディスクに書かない）。
 
    つかいかた: node tools/mock-ranking-server.mjs   → 「LISTEN <port>」を出して待つ
+   ブラウザから つなぐ とき: 環境変数 CORS_ALLOW_ORIGINS に ページの オリジン（カンマ区切り・完全一致）。未設定なら CORS の ヘッダーを 出さない
    テスト専用: GET /_test/state で 受けた結果・名前・セーブの ひかえ・引き継ぎの 試しの回数を 見られる
    ========================================================= */
 import { createServer } from 'node:http';
@@ -19,6 +20,14 @@ const CODE_LEN = 12;
 const CODE_GROUP = 4;
 const SAVE_MAX = 512 * 1024;
 const RECOVER_LIMIT = 10;
+const HTTP_NO_CONTENT = 204;
+const CORS_ORIGINS = (process.env.CORS_ALLOW_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
+const CORS_MAX_AGE_SEC = 600;
+const CORS_PREFLIGHT = {
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT',
+  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Max-Age': String(CORS_MAX_AGE_SEC),
+};
 
 const players = new Map();   // playerId -> { playerId, name, code }
 const devices = new Map();   // deviceKey -> playerId
@@ -167,7 +176,19 @@ async function route(req) {
   return fn({ body, p, m: url.pathname.match(re) });
 }
 
+// 許した オリジンにだけ 付ける（Origin なし・未設定・ほかの オリジンへの 返事は 変えない）
+const corsAllowed = (req) => CORS_ORIGINS.includes(req.headers.origin);
+const corsHeaders = (req) => (corsAllowed(req) ? { 'Access-Control-Allow-Origin': req.headers.origin, Vary: 'Origin' } : {});
+
+function answerPreflight(req, res) {
+  if (req.method !== 'OPTIONS' || !corsAllowed(req)) return false;
+  res.writeHead(HTTP_NO_CONTENT, { ...corsHeaders(req), ...CORS_PREFLIGHT });
+  res.end();
+  return true;
+}
+
 const server = createServer(async (req, res) => {
+  if (answerPreflight(req, res)) return;
   let status;
   let out;
   try {
@@ -175,7 +196,7 @@ const server = createServer(async (req, res) => {
   } catch (e) {
     [status, out] = e instanceof ApiError ? [e.status, { error: e.code, message: e.message }] : [500, { error: 'mock_error', message: `${req.method} ${req.url}: ${e.message}` }];
   }
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(req) });
   res.end(JSON.stringify(out));
 });
 server.listen(0, '127.0.0.1', () => console.log(`LISTEN ${server.address().port}`));

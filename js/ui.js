@@ -13,6 +13,7 @@ window.GP = window.GP || {};
   const screens = {};       // 各画面の { render } を 登録する
   let current = 'park';
   let modalOnClose = null;
+  let modalLocked = false;
 
   /* =========================================================
      トースト
@@ -38,6 +39,13 @@ window.GP = window.GP || {};
   /* =========================================================
      モーダル
      ========================================================= */
+  // 返事を 待つ あいだは うしろの 画面も さわれなく する（Tab キーで 別の 画面へ 行かせない）
+  function setModalLock(on) {
+    modalLocked = on;
+    U.$$('body > :not(#modal-root):not(#toast-root):not(script)').forEach((n) => { n.inert = on; });
+  }
+
+  /** cfg.lock: true なら ✕・背景タップ・Esc の どれでも とじない（ボタンと closeModal() だけ） */
   function modal(cfg) {
     const root = $('#modal-root');
     $('#modal-title').innerHTML = rich(cfg.title || '');
@@ -62,7 +70,8 @@ window.GP = window.GP || {};
     });
     foot.hidden = !(cfg.buttons && cfg.buttons.length);
 
-    $('#modal-close').hidden = cfg.noClose === true;
+    setModalLock(cfg.lock === true);
+    $('#modal-close').hidden = cfg.noClose === true || modalLocked;
     modalOnClose = cfg.onClose || null;
     root.hidden = false;
     body.scrollTop = 0;
@@ -73,10 +82,12 @@ window.GP = window.GP || {};
     const root = $('#modal-root');
     if (root.hidden) return;
     root.hidden = true;
+    setModalLock(false);
     const cb = modalOnClose;
     modalOnClose = null;
     if (cb) cb();
   }
+  function dismissModal() { if (!modalLocked) closeModal(); }
   function isModalOpen() { return !$('#modal-root').hidden; }
 
   /* =========================================================
@@ -209,10 +220,10 @@ window.GP = window.GP || {};
     U.$$('.tab').forEach((b) => {
       b.addEventListener('click', () => tab(b.dataset.tab));
     });
-    $('#modal-close').addEventListener('click', closeModal);
-    $('#modal-backdrop').addEventListener('click', closeModal);
+    $('#modal-close').addEventListener('click', dismissModal);
+    $('#modal-backdrop').addEventListener('click', dismissModal);
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') dismissModal();
     });
   }
 

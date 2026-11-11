@@ -38,6 +38,10 @@ window.GP = window.GP || {};
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  /* ---------- 型 ---------- */
+  const isObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+  const asList = (v) => (Array.isArray(v) ? v : []);
+
   /* ---------- 数値 ---------- */
   const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -171,7 +175,7 @@ window.GP = window.GP || {};
   }
 
   GP.util = {
-    $, $$, el, esc, clamp, lerp, round, fmt,
+    $, $$, el, esc, isObject, asList, clamp, lerp, round, fmt,
     makeRng, rnd, sleep, uid,
     save, load, wipe, hasSave, SAVE_KEY,
     loadHistory, saveHistory, pushHistory, HISTORY_KEY, formatDateTime,

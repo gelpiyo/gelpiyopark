@@ -40,7 +40,13 @@ window.GP = window.GP || {};
     $('#title-screen').hidden = false;
     $('#app').hidden = true;
     $('#btn-continue').hidden = !U.hasSave();
+    $('#btn-account').hidden = !GP.net.enabled();
     renderTitlePiyos();
+  }
+
+  // ひきつぎで この端末の データが おきかわったら タイトルへ（「つづきから」で うけとった セーブを ひらく）
+  function showAccount() {
+    GP.online.openAccount(showTitle);
   }
 
   function enterGame(fresh) {
@@ -224,6 +230,14 @@ window.GP = window.GP || {};
         el('p', { text: `さいきん ${D.RULES.resultHistoryMax}かいの けっちゃくの きろく` }),
       ]),
     ]));
+    if (GP.net.enabled()) {
+      btns.appendChild(el('button', {
+        class: 'build-item', type: 'button', onclick: () => { UI.closeModal(); setTimeout(showAccount, 120); },
+      }, [
+        el('span', { class: 'build-ico', html: GP.icons.svg('lock') }),
+        el('span', { class: 'build-info' }, [el('h4', { text: 'アカウント・ひきつぎ' }), el('p', { text: 'ひきつぎコード・セーブの ひかえ' })]),
+      ]));
+    }
     btns.appendChild(el('button', {
       class: 'build-item', type: 'button', onclick: () => { St.persist(); UI.toast('セーブしました', 'good'); },
     }, [
@@ -291,7 +305,8 @@ window.GP = window.GP || {};
     const box = el('div', { class: 'history-item' });
     box.appendChild(el('h4', { text: `${index + 1}. ${U.formatDateTime(rec.at)}` }));
     box.appendChild(el('p', { class: 'history-score', text: 'スコア ' + orDash(rec.score, (v) => v.toLocaleString('ja-JP')) }));
-    historyRows(rec).forEach(([k, v]) => box.appendChild(UI.kv(k, v)));
+    // 記録は 引き継ぎで 窓口からも とどく。UI.kv は 値を innerHTML で 入れるので エスケープ
+    historyRows(rec).forEach(([k, v]) => box.appendChild(UI.kv(k, U.esc(v))));
     return box;
   }
 
@@ -386,7 +401,19 @@ window.GP = window.GP || {};
         },
       });
     }
-    foot.push({ label: 'さいしょから', cls: 'btn-accent', onClick: () => { recordResult(key); shownEnding = ''; setTimeout(startNew, 120); } });
+    const restart = () => { setTimeout(startNew, 120); };
+    foot.push({
+      label: 'さいしょから', cls: 'btn-accent',
+      onClick: () => {
+        recordResult(key); shownEnding = '';
+        UI.closeModal();
+        // ランキングへ おくるのは ぜん制圧の クリアだけ
+        if (canContinue) GP.online.startRanking(St.resultRecord(Date.now()), restart);
+        else restart();
+        // ランキングの 窓を ボタンの あとしまつで とじさせない
+        return false;
+      },
+    });
 
     UI.modal({
       title: win ? ':trophy: クリア！' : 'ゲーム しゅうりょう',
@@ -441,6 +468,7 @@ window.GP = window.GP || {};
 
     $('#btn-newgame').addEventListener('click', startNew);
     $('#btn-howto').addEventListener('click', showHowTo);
+    $('#btn-account').addEventListener('click', showAccount);
     $('#btn-menu').addEventListener('click', showMenu);
     $('#btn-continue').addEventListener('click', () => {
       if (!St.restore()) { UI.toast('セーブデータが よめませんでした', 'bad'); return; }
@@ -453,6 +481,16 @@ window.GP = window.GP || {};
     window.addEventListener('pagehide', () => { if (St.st) St.persist(); });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && St.st) { St.persist(); maybeNotify(); }
+    });
+    // セーブの ひかえ：裏へ 回る ときに おくる（うえの St.persist() の あとで うごく）
+    const sendBackup = () => { GP.backup.sendNow({ keepalive: true }); };
+    window.addEventListener('pagehide', sendBackup);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) sendBackup(); });
+    // べつの タブが 引き継ぎで セーブを おきかえた：この タブの 古い ゲームで 上書きしない よう、閉じて 読みなおす
+    window.addEventListener('storage', (e) => {
+      if (e.key !== GP.backup.REPLACED_KEY || e.newValue === null) return;
+      St.unload();
+      location.reload();
     });
     registerSW();
 
@@ -482,7 +520,7 @@ window.GP = window.GP || {};
     showTitle();
   }
 
-  GP.main = { boot, showEnding, showHowTo, showMenu, showTitle, showHistory };
+  GP.main = { boot, showEnding, showHowTo, showMenu, showTitle, showHistory, showAccount };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

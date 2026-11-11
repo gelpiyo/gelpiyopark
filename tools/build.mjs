@@ -2,8 +2,8 @@
    tools/build.mjs — 1ファイル版を つくる
 
    dist/gelpiyo-park.html … そのまま ひらける スタンドアロンHTML
-                            （USB・メール添付・社内共有 などに）
-   dist/artifact.html     … Artifact 用（<html>/<head>/<body> なし）
+                            （USB・メール添付・社内共有 などに。窓口の 接続先 入り）
+   dist/artifact.html     … Artifact 用（<html>/<head>/<body> なし。接続先 なし）
 
    つかいかた: node tools/build.mjs
    ========================================================= */
@@ -14,15 +14,21 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 
+const NET_CONFIG = 'js/netconfig.js';
+// Artifact は 外への 通信を 止められて いて 失敗の 窓しか 出せないので、接続先を 入れない
+const OFFLINE_NET_CONFIG = "window.GP = window.GP || {};\nGP.netConfig = Object.freeze({ baseUrl: '', board: '' });\n";
+
 const JS = [
-  'js/util.js', 'js/data.js', 'js/icons.js', 'js/piyodata.js', 'js/piyo.js', 'js/hex.js', 'js/state.js',
+  'js/util.js', 'js/data.js', NET_CONFIG, 'js/icons.js', 'js/piyodata.js', 'js/piyo.js', 'js/hex.js', 'js/state.js',
   'js/ui.js', 'js/parkscene.js', 'js/park.js', 'js/squad.js', 'js/gacha.js',
-  'js/battle.js', 'js/worldmap.js', 'js/main.js',
+  'js/battle.js', 'js/worldmap.js', 'js/net.js', 'js/backup.js', 'js/online.js', 'js/main.js',
 ];
+const scriptWith = (netConfig) => JS.map((f) => `/* ===== ${f} ===== */\n${f === NET_CONFIG ? netConfig : read(f)}`).join('\n');
+const onlineScript = scriptWith(read(NET_CONFIG));
+const offlineScript = scriptWith(OFFLINE_NET_CONFIG);
 
 const html = read('index.html');
 const css = read('css/style.css');
-const script = JS.map((f) => `/* ===== ${f} ===== */\n${read(f)}`).join('\n');
 
 // index.html の <body> の なかみ だけ とりだす
 const bodyInner = html
@@ -31,7 +37,7 @@ const bodyInner = html
   .replace(/\s*<script src="js\/[^"]+"><\/script>/g, '')
   .trim();
 
-const inlined = `<style>\n${css}\n</style>\n${bodyInner}\n<script>\n${script}\n</script>`;
+const inlined = `<style>\n${css}\n</style>\n${bodyInner}\n<script>\n${offlineScript}\n</script>`;
 
 mkdirSync(join(ROOT, 'dist'), { recursive: true });
 
@@ -54,7 +60,7 @@ ${css}
 <body>
 ${bodyInner}
 <script>
-${script}
+${onlineScript}
 </script>
 </body>
 </html>
@@ -68,4 +74,4 @@ writeFileSync(join(ROOT, 'dist/artifact.html'),
 const kb = (s) => Math.round(s.length / 1024) + ' KB';
 console.log('dist/gelpiyo-park.html :', kb(standalone), '（スタンドアロン）');
 console.log('dist/artifact.html     :', kb(inlined), '（Artifact用）');
-console.log('  内訳: CSS', kb(css), '/ JS', kb(script), '/ HTML', kb(bodyInner));
+console.log('  内訳: CSS', kb(css), '/ JS', kb(onlineScript), '/ HTML', kb(bodyInner));

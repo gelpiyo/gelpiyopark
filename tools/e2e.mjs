@@ -2,53 +2,15 @@
    tools/e2e.mjs — ブラウザ操作の とおしテスト（CDP）
    じっさいに タップして 例外が でないかを しらべる。
    まえもって headless chrome を --remote-debugging-port=9222 で
-   きどう しておくこと。
+   きどう しておくこと（ポートは 環境変数 CDP_PORT で かえられる）。
 
    つかいかた: node tools/e2e.mjs [http://localhost:8123]
    ========================================================= */
+import { connect, sleep } from './cdp.mjs';
+
 const BASE = process.argv[2] || 'http://localhost:8123';
 
-const t = (await (await fetch('http://127.0.0.1:9222/json/list')).json()).find((x) => x.type === 'page');
-// ブラウザ拡張きのうの メッセージングノイズは ページの エラーではないので むしする
-const isNoise = (t) =>
-  /Receiving end does not exist|message channel closed before a response/.test(t || '');
-const ws = new WebSocket(t.webSocketDebuggerUrl);
-let id = 0; const pend = new Map(); const errs = [];
-ws.onmessage = (e) => {
-  const m = JSON.parse(e.data);
-  if (m.id && pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); }
-  else if (m.method === 'Runtime.exceptionThrown') {
-    const t = m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text || '';
-    if (!isNoise(t)) errs.push('EXC ' + t);
-  } else if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error') {
-    if (!isNoise(m.params.entry.text)) errs.push('ERR ' + m.params.entry.text);
-  }
-};
-await new Promise((r) => { ws.onopen = r; });
-const send = (method, params = {}) =>
-  new Promise((res) => { const i = ++id; pend.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const evalJs = async (expr) => {
-  const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true });
-  if (r.result?.exceptionDetails) {
-    errs.push('EVAL ' + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text));
-    return null;
-  }
-  return r.result?.result?.value;
-};
-
-await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable');
-await send('Network.enable'); await send('Network.setCacheDisabled', { cacheDisabled: true });
-await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
-
-const steps = [];
-const step = async (name, expr, wait = 700) => {
-  const before = errs.length;
-  const v = await evalJs(expr);
-  await sleep(wait);
-  steps.push({ name, value: v, newErrors: errs.length - before });
-  console.log(`  ${errs.length > before ? 'NG' : 'ok'}  ${name.padEnd(34)} ${JSON.stringify(v)}`);
-};
+const { send, evalJs, step, steps, errs, close } = await connect();
 
 console.log('=== ブラウザ とおしテスト ===');
 await send('Page.navigate', { url: BASE + '/?dev=park' });
@@ -421,5 +383,5 @@ console.log('  ステップ数 :', steps.length);
 console.log('  エラー     :', errs.length);
 if (errs.length) errs.slice(0, 12).forEach((e) => console.log('   ', e.slice(0, 220)));
 else console.log('  例外なし ✓');
-ws.close();
+close();
 process.exit(errs.length ? 1 : 0);

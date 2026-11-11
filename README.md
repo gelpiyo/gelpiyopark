@@ -17,8 +17,10 @@ Taica「ゲルぴよ」を題材にした **スマホWebブラウザ向けシミ
 
 ### 1. 1ファイル版（いちばん手軽）
 
-`dist/gelpiyo-park.html` をブラウザで開くだけ。約 200KB、外部通信ゼロ。
-メール添付・USB・社内共有フォルダでそのまま配れます。
+`dist/gelpiyo-park.html` をブラウザで開くだけ。約 420KB。
+メール添付・USB・社内共有フォルダでそのまま配れます。ファイルを直接開いた（`file://`）ときは外部通信ゼロで、オンライン機能の項目も出ません。
+1ファイル版にも窓口の接続先が入っています。オンライン機能（ランキング・アカウント引き継ぎ・セーブの控え）が使えるのは、窓口が許可している配信元（公開ページと同じ `https://gelpiyo.github.io`）に置いて開いたときだけです。
+`dist/artifact.html`（Artifact 用）には接続先を入れず、オンライン機能はありません。
 
 ### 2. ローカルサーバ（PWA・オフライン動作の確認用）
 
@@ -67,6 +69,7 @@ gelpiyopark/
 ├── js/
 │   ├── util.js             共通ユーティリティ・保存・乱数
 │   ├── data.js             ★マスタデータ（施設/ぴよ/装備/勢力/地形/区画/定数）
+│   ├── netconfig.js        窓口の接続先（tools/export-net.mjs で自動生成。手で編集しない）
 │   ├── piyodata.js         実機3Dモデル（tools/mesh.mjs で自動生成・50KB）
 │   ├── piyo.js             ゲルぴよ描画（SVG/Canvas 2D ＋ 実機3Dビュー WebGL）
 │   ├── icons.js            ゲーム内アイコン62種（1つの定義から SVG と Canvas を出力）
@@ -79,6 +82,9 @@ gelpiyopark/
 │   ├── battle.js           バトル（シミュレーション＋再生）
 │   ├── squad.js            なかま（編成・育成・装備）
 │   ├── gacha.js            スカウト
+│   ├── net.js              窓口との通信・アカウント・引き継ぎコード
+│   ├── backup.js           セーブの控えの自動送信・引き継ぎ時の読み戻し
+│   ├── online.js           ランキング送信・アカウント（引き継ぎ）の画面
 │   └── main.js             起動・タイトル・メニュー・エンディング
 ├── dist/                   1ファイル版（tools/build.mjs で生成）
 ├── docs/仕様書.md          実装仕様と案件定義書との対応表
@@ -90,6 +96,12 @@ gelpiyopark/
     ├── serve.mjs           ローカル配信サーバ（node だけで動く。`lan` 付きで実機確認用）
     ├── sim.mjs             ロジックの自動テスト＆バランス確認
     ├── e2e.mjs             ブラウザ操作の通しテスト（CDP）
+    ├── e2e-online.mjs      オンライン機能のブラウザ通しテスト（CDP・にせ窓口へ接続）
+    ├── cdp.mjs             e2e.mjs / e2e-online.mjs 共通の CDP 接続
+    ├── test-helpers.mjs    online-test.mjs / e2e-online.mjs 共通の道具（にせ窓口の起動など）
+    ├── online-test.mjs     窓口との通信・控えの自動テスト（ブラウザ不要・にせ窓口へ接続）
+    ├── mock-ranking-server.mjs  テスト用のにせ窓口（本物の窓口にテストの記録を書かないため）
+    ├── export-net.mjs      godot/data/ranking.json → js/netconfig.js（`--check` でずれの確認）
     └── shot.mjs            画面のスクリーンショット取得（CDP）
 ```
 
@@ -124,6 +136,29 @@ node tools/e2e.mjs
 建設→日送り→進軍→バトル→交渉→育成→スカウト→セーブまで、実際にタップして例外が出ないか確認します。
 同じ Chrome を使って `node tools/shot.mjs out.png "http://localhost:8123/?dev=map" 390 844` で
 スクリーンショットも取れます（`docs/screens/` の画像はこれで取得したものです）。
+`e2e.mjs` と `e2e-online.mjs` は、環境変数 `CDP_PORT` で Chrome のデバッグポートを変えられます（既定 9222）。
+
+### オンライン機能のテスト（ランキング・アカウント引き継ぎ・セーブの控え）
+
+どちらも **にせ窓口**（`tools/mock-ranking-server.mjs`）を自分で起動してつなぎます。本物の窓口へは通信しません。
+
+```bash
+node tools/online-test.mjs      # 通信・控えのロジック（ブラウザ不要）
+node tools/e2e-online.mjs       # 画面の通しテスト（上と同じ Chrome と tools/serve.mjs が必要）
+```
+
+`e2e-online.mjs` は最初に接続先がにせ窓口であることを確かめ、違えば何もせず失敗で終わります。
+終了時に、そのオリジンの localStorage（セーブ・成績・アカウント）を実行前の状態へ戻します。
+
+窓口の接続先は `godot/data/ranking.json` が唯一の元です。変えたときは次を実行します。
+
+```bash
+node tools/export-net.mjs           # js/netconfig.js を書き直す
+node tools/export-net.mjs --check   # 書かずに、ずれていないかだけ確認（ずれていれば終了コード 1）
+```
+
+オンライン機能は、ページが `http(s)://` で開かれ、かつ自動の検査（headless Chrome など）でないときだけ窓口へつなぎます。
+`file://` で開いたとき・Artifact 用（`dist/artifact.html`）・自動の検査では、メニューとタイトルの「アカウント・ひきつぎ」は出ず、窓口へ一切通信しません。
 
 ### 1ファイル版のビルド
 

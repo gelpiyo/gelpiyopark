@@ -3,7 +3,7 @@
    ・初回アクセス後は オフラインでも あそべる
    ・更新は「ネット優先→だめならキャッシュ」で 反映する
    ========================================================= */
-const CACHE = 'gelpiyo-park-v7';
+const CACHE = 'gelpiyo-park-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
   './css/style.css',
   './js/util.js',
   './js/data.js',
+  './js/netconfig.js',
   './js/icons.js',
   './js/piyodata.js',
   './js/piyo.js',
@@ -23,6 +24,9 @@ const ASSETS = [
   './js/gacha.js',
   './js/battle.js',
   './js/worldmap.js',
+  './js/net.js',
+  './js/backup.js',
+  './js/online.js',
   './js/main.js',
   './assets/icon.svg',
   './assets/icon-maskable.svg',

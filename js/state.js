@@ -742,10 +742,13 @@ window.GP = window.GP || {};
     if (!S.data) return;
     S.data.lastSeen = Date.now();
     U.save(S.data);
+    if (GP.backup) GP.backup.markDirty();
   }
+  const isLoadable = (d) => !!d && d.v === 1;
+  function unload() { S.data = null; }
   function restore() {
     const d = U.load();
-    if (!d || d.v !== 1) return null;
+    if (!isLoadable(d)) return null;
     // 欠けている キーを おぎなう（バージョン差の 保険）
     d.res = Object.assign({}, R.startRes, d.res);
     d.stats = Object.assign({ battles: 0, wins: 0, scouts: 0, built: 0, captured: 0, lost: 0 }, d.stats);
@@ -772,7 +775,7 @@ window.GP = window.GP || {};
   GP.state = {
     S,
     get st() { return S.data; },
-    newGame, restore, persist,
+    newGame, restore, persist, isLoadable, unload,
     makeUnit, unitName, unitStats, unitPower, giveXp, xpNeed, rollEvolution,
     plotsOpen, facilityAgg, ownedTileIds, tileYield, teamCap, rosterCap,
     kigenTarget, isStriking, prodMultiplier, income,
